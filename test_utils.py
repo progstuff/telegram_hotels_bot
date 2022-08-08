@@ -50,3 +50,43 @@ class TestQuerries:
             bot.reply_to(message, message.text)
 
         bot.infinity_polling()
+
+    def start_diploma_bot(self) -> None:
+        """
+        ссылка на бота t.me/hoteIs_heIper_bot
+        запускает бот с основными командами:
+        /help
+        /lowprice
+        /highprice
+        /bestdeal
+        /history
+        """
+        bot = telebot.TeleBot(self.__bot_token)
+
+        @bot.message_handler(commands=['help'])
+        def send_help(message: str) -> None:
+            bot.reply_to(message, "здесь будет помощь по командам")
+            print('пришёл запрос на показ помощи по командам')
+
+        @bot.message_handler(commands=['lowprice'])
+        def send_lowprice(message: str) -> None:
+            bot.reply_to(message, "здесь будут показаны самые дешёвые отели города")
+            print('пришёл запрос на показ самых дешёвых отелей города')
+
+        @bot.message_handler(commands=['highprice'])
+        def send_highprice(message: str) -> None:
+            bot.reply_to(message, "здесь будут показаны самые дорогие отели города")
+            print('пришёл запрос на показ самых дорогих отелей города')
+
+        @bot.message_handler(commands=['bestdeal'])
+        def send_bestdeal(message: str) -> None:
+            bot.reply_to(message, "здесь будут показаны  наиболее подходящих по цене и расположению от центра")
+            print('пришёл запрос на показ наиболее подходящих по цене и расположению от центра')
+
+        @bot.message_handler(commands=['history'])
+        def send_history(message: str) -> None:
+            bot.reply_to(message, "здесь будет показана история поиска отелей")
+            print('пришёл запрос на показ истории')
+
+        bot.infinity_polling()
+
