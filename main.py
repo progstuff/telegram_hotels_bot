@@ -1,11 +1,8 @@
-from test_utils import TestQuerries
+from loader import bot
+import handlers
+from utils.set_bot_commands import set_default_commands
 
 if __name__ == '__main__':
-    test_querries = TestQuerries()
-    #print('Ответ от rapidapi:', test_querries.try_get_data_from_rapid())
-    #print('Ответ от бота:', test_querries.try_get_data_from_bot())
-    #test_querries.start_echo_bot()
+    set_default_commands(bot)
+    bot.infinity_polling()
 
-    # ссылка на бота t.me/hoteIs_heIper_bot
-    test_querries.start_diploma_bot()
-    pass

@@ -1,10 +1,16 @@
 import requests
 import telebot
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 class TestQuerries:
     """ класс для тестовых запросов, чтобы разобраться как что работает """
     def __init__(self):
-        self.__rapid_api_key = '7cdcd41828msh59dda980b1b10a0p1c050ajsn10e4bc3f5d43'
-        self.__bot_token = '5494477157:AAHOTYk_NgIUYVJmUNJZ0-u850FdmFAniis'
+        """загрузка ключа и токена из файла .env"""
+        dotenv_path = join(dirname(__file__), '.env')
+        load_dotenv(dotenv_path)
+        self.__rapid_api_key = os.getenv('RAPID_API_KEY')
+        self.__bot_token = os.getenv('BOT_TOKEN')
 
     def try_get_data_from_rapid(self) -> str:
         """
@@ -88,5 +94,6 @@ class TestQuerries:
             bot.reply_to(message, "здесь будет показана история поиска отелей")
             print('пришёл запрос на показ истории')
 
+        print('Тестовый бот запущен')
         bot.infinity_polling()
 
