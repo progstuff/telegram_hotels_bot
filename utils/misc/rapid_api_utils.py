@@ -1,6 +1,7 @@
 import requests
 import json
 from config_data.config import RAPID_API_KEY
+from utils.misc.data_utils import get_dates_for_low_high_prices
 
 
 def send_data_to_server(url, params, headers):
@@ -16,7 +17,8 @@ def send_data_to_server(url, params, headers):
 
 
 def get_lowprice_hotels(town):
-    return get_hotels(town, '2022-08-20', '2022-08-21', 'PRICE')
+    start_date, end_date = get_dates_for_low_high_prices()
+    return get_hotels(town, start_date, end_date, 'PRICE')
 
 
 def get_hotels(town: str, date_in: str, date_out: str, sort_rule: str):

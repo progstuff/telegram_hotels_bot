@@ -1,10 +1,32 @@
 import os
 from dotenv import load_dotenv, find_dotenv
 
+
+def get_towns() -> [{}, {}, ...]:
+    towns_data = []
+    with open('geo.csv', 'r') as towns:
+        towns.readline()
+        for line in towns:
+            data = line.split(';')
+            towns_data.append(
+                {
+                    'country_en': data[1][1:len(data[1])-1],
+                    'region_en': data[2][1:len(data[2])-1],
+                    'city_en': data[3][1:len(data[3])-1],
+                    'country_ru': data[4][1:len(data[4])-1],
+                    'region_ru': data[5][1:len(data[5])-1],
+                    'city_ru': data[6][1:len(data[6])-1],
+                }
+            )
+    return towns_data
+
+
 if not find_dotenv():
     exit('Переменные окружения не загружены т.к отсутствует файл .env')
 else:
     load_dotenv()
+
+TOWNS = get_towns()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 RAPID_API_KEY = os.getenv('RAPID_API_KEY')

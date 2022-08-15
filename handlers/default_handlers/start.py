@@ -1,5 +1,5 @@
 from telebot.types import Message
-from keyboards.inline.show_menu import get_main_menu_keyboard
+from keyboards.reply.show_menu import get_main_menu_keyboard
 from loader import bot
 from keyboards.callbacks.callback_utils import get_answer_object
 
