@@ -6,7 +6,10 @@ from utils.misc.data_utils import get_complete_town_name
 from states.lowprice_information import UserLowPriceState
 from utils.misc.hotels_parser import Hotel
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
+from config_data.config import HOTEL_PAGES
 import json
+
+from telegram_bot_pagination import InlineKeyboardPaginator
 
 
 @bot.message_handler(commands=[LOW_PRICE_COMMAND['command_name']])
@@ -31,21 +34,10 @@ def lowprice_get_city(message: Message) -> None:
             bot.set_state(message.from_user.id, UserLowPriceState.city, message.chat.id)
 
 
-@bot.message_handler(state=UserLowPriceState.hotels_number)
-def lowprice_get_hotel_numbers(message: Message) -> None:
-    pass
-
-
-def get_data_from_server(message: Message):
-    is_success, hotels = get_lowprice_hotels('new york')
-    if is_success:
-        with open('result.json', 'w') as file:
-            json.dump(hotels, file, indent=4)
-        hotel_cl = Hotel()
-        for hotel in hotels:
-            hotel_cl.get_hotel_data(hotel)
-            bot.send_message(message.from_user.id, hotel_cl.get_str_view())
-    print(hotels)
+#@bot.message_handler(state=UserLowPriceState.hotels_number)
+#def lowprice_get_hotel_numbers(message: Message) -> None:
+#    bot.send_message(message.from_user.id, 'Все данные получены, начинаю загрузку отелей')
+#    bot.delete_state(message.from_user.id, message.chat.id)
 
 
 @bot.message_handler(content_types='text')

@@ -32,7 +32,6 @@ def get_hotels(town: str, date_in: str, date_out: str, sort_rule: str):
 
     return False, None
 
-
 def get_hotels_from_server(town_id: str, date_in: str, date_out: str, sort_rule: str):
     """
     получает отели в выбранной локации
