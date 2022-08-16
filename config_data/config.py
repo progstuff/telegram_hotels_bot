@@ -26,11 +26,9 @@ if not find_dotenv():
 else:
     load_dotenv()
 
-TOWNS = get_towns()
-
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 RAPID_API_KEY = os.getenv('RAPID_API_KEY')
-
+TOWNS = get_towns()
 START_COMMAND = {'command_name': 'start', 'command_description': '🚀 Начать сначала'}
 HELP_COMMAND = {'command_name': 'help', 'command_description': '❓ Вывести справку'}
 LOW_PRICE_COMMAND = {'command_name': 'lowprice', 'command_description': '🏨 бюджетные'}
