@@ -9,7 +9,7 @@ class Hotel:
         self.__address = ''
         self.__center_dist = ''
 
-    def get_hotel_data(self, hotel):
+    def set_hotel_data(self, hotel):
         self.__id = hotel.get('id', None)
         self.__name = hotel.get('name', None)
         adr = hotel.get('address')
@@ -28,10 +28,16 @@ class Hotel:
 def get_lowprice_data_from_server():
     is_success, hotels = get_lowprice_hotels('new york')
     if is_success:
-        with open('result.json', 'w') as file:
+        with open('lowprice_result.json', 'w') as file:
             json.dump(hotels, file, indent=4)
-        hotel_cl = Hotel()
-        for hotel in hotels:
-            hotel_cl.get_hotel_data(hotel)
             #bot.send_message(message.from_user.id, hotel_cl.get_str_view())
-    #print(hotels)
+    print(hotels)
+
+def get_lowprice_hotel_data(ind):
+    with open('lowprice_result.json', 'r') as file:
+        data = json.load(file)
+    if len(data) > ind+1:
+        h = Hotel()
+        h.set_hotel_data(data[ind])
+        return h.get_str_view()
+    return ''

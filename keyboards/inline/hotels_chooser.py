@@ -10,9 +10,9 @@ def get_hotels_numbers_choose_keyboard():
     keyboard.row(button1, button5, button10, button15)
     return keyboard
 
-def get_lowprice_paginator(page):
+def get_lowprice_paginator(page, pages_cnt):
     paginator = InlineKeyboardPaginator(
-        10,
+        pages_cnt,
         current_page=page,
         data_pattern='lowprice_page#{page}'
     )
