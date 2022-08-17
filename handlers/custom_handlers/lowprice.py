@@ -12,7 +12,8 @@ lowprice_data = dict()
 @bot.message_handler(commands=[LOW_PRICE_COMMAND['command_name']])
 def lowprice(message: Message) -> None:
     bot.set_state(message.from_user.id, UserLowPriceState.city, message.chat.id)
-    bot.send_message(message.from_user.id, 'вы выбрали показать топ самых дешевых отелей в городе. Введите город')
+    bot.send_message(message.from_user.id, 'Вы выбрали показать топ бюджетных отелей в городе')
+    bot.send_message(message.from_user.id, 'Шаг 1 из 3: Введите город')
     lowprice_data[message.chat.id] = UserLowPriceData()
 
 
@@ -22,13 +23,13 @@ def lowprice_get_city(message: Message) -> None:
     town = get_complete_town_name(message.text)
     if town is not None:
         lowprice_data[message.chat.id].city = town
-        bot.send_message(message.from_user.id, 'Поиск в городе: {0}'.format(town), )
+        bot.send_message(chat_id=message.chat.id, text='Поиск в городе: {0}'.format(town))
         bot.set_state(message.from_user.id, UserLowPriceState.hotels_number, message.chat.id)
 
         keyboard = get_hotels_numbers_choose_keyboard()
-        bot.send_message(message.from_user.id, 'выберите по сколько отелей показывать', reply_markup=keyboard)
+        bot.send_message(message.from_user.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче', reply_markup=keyboard)
     else:
-        bot.send_message(message.from_user.id, 'У меня в базе нет такого города. Возможно ввод с ошибкой. Введите город ещё раз:')
+        bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')
         bot.set_state(message.from_user.id, UserLowPriceState.city, message.chat.id)
 
 
