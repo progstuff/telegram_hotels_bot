@@ -7,5 +7,3 @@ from loader import bot
 def bot_start(message: Message):
     main_menu_keyboard = get_main_menu_keyboard()
     bot.send_message(message.chat.id, "Какие отели Вас интересуют?", reply_markup=main_menu_keyboard)
-
-

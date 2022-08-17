@@ -10,8 +10,11 @@ class UserLowPriceState(StatesGroup):
 class UserLowPriceData:
     def __init__(self):
         self.__city = ''
-        self.__hotels_number = 0
         self.__image_choose = False
+        self.__cur_image_index = 1
+        self.__max_image_index = 10
+        self.__cur_page_index = 1
+        self.__max_page_index = 5
 
     @property
     def city(self):
@@ -22,19 +25,40 @@ class UserLowPriceData:
         self.__city = city
 
     @property
-    def hotels_number(self):
-        return self.__hotels_number
-
-    @hotels_number.setter
-    def hotels_number(self, hotels_number):
-        self.__hotels_number = hotels_number
-
-    @property
     def image_choose(self):
         return self.__image_choose
 
     @image_choose.setter
-    def hotels_number(self, image_choose):
+    def image_choose(self, image_choose):
         self.__image_choose = image_choose
+
+    @property
+    def max_image_index(self):
+        return self.__max_image_index
+
+    @property
+    def cur_image_index(self):
+        return self.__cur_image_index
+
+    @cur_image_index.setter
+    def cur_image_index(self, new_index):
+        if (new_index > 0) and (new_index <= self.__max_image_index):
+            self.__cur_image_index = new_index
+
+    @property
+    def cur_page_index(self):
+        return self.__cur_page_index
+
+    @cur_page_index.setter
+    def cur_page_index(self, page_index):
+        self.__cur_page_index = page_index
+
+    @property
+    def max_page_index(self):
+        return self.__max_page_index
+
+    @max_page_index.setter
+    def max_page_index(self, page_cnt):
+        self.__max_page_index = page_cnt
 
 

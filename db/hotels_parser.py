@@ -36,8 +36,8 @@ def get_lowprice_data_from_server():
 def get_lowprice_hotel_data(ind):
     with open('lowprice_result.json', 'r') as file:
         data = json.load(file)
-    if len(data) > ind+1:
+    if len(data) >= ind:
         h = Hotel()
-        h.set_hotel_data(data[ind])
+        h.set_hotel_data(data[ind-1])
         return h.get_str_view()
     return ''

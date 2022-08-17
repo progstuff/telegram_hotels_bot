@@ -1,5 +1,7 @@
 import telebot
 from telegram_bot_pagination import InlineKeyboardPaginator
+from telebot.types import InlineKeyboardButton
+
 
 def get_hotels_numbers_choose_keyboard():
     keyboard = telebot.types.InlineKeyboardMarkup()
@@ -10,11 +12,20 @@ def get_hotels_numbers_choose_keyboard():
     keyboard.row(button1, button5, button10, button15)
     return keyboard
 
-def get_lowprice_paginator(page, pages_cnt):
+
+def hotels_paginator(page, pages_cnt, data_prefix):
     paginator = InlineKeyboardPaginator(
         pages_cnt,
         current_page=page,
-        data_pattern='lowprice_page#{page}'
+        data_pattern=data_prefix + '#{page}'
     )
     return paginator
 
+
+def add_photo_buttons(paginator, photo_number, photos_numbers, data_prefix):
+    paginator.add_before(
+        InlineKeyboardButton('<', callback_data=data_prefix + '#prev'),
+        InlineKeyboardButton('{0}/{1}'.format(photo_number, photos_numbers), callback_data=data_prefix + '#cur'),
+        InlineKeyboardButton('>', callback_data=data_prefix + '#next')
+    )
+    return paginator
