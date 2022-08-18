@@ -1,6 +1,7 @@
 from loader import bot
 from keyboards.inline.hotels_chooser import hotels_paginator, add_photo_buttons
-from db.hotels_parser import get_lowprice_data_from_server
+from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server
+from db.hotels_parser import get_hotel_id
 from db.hotels_parser import get_lowprice_hotel_data
 from handlers.custom_handlers.lowprice import lowprice_data
 from states.lowprice_information import UserLowPriceState
@@ -43,6 +44,9 @@ def hotels_show_image_choose(call):
     bot.send_message(chat_id=call.message.chat.id, text=mes)
 
     #get_lowprice_data_from_server()
+    get_images_links_from_server(get_hotel_id(0))
+
+
     bot.delete_state(call.message.from_user.id, call.message.chat.id)
     # тут должно быть обращение к БД
     page_ind = 1

@@ -41,7 +41,7 @@ def lowprice_get_city(message: Message) -> None:
 #    bot.delete_state(message.from_user.id, message.chat.id)
 
 
-@bot.message_handler(content_types='text')
-def lowprice_button_message(message: Message) -> None:
-    if message.text == LOW_PRICE_COMMAND['command_description']:
-        lowprice(message)
+#@bot.message_handler(content_types='text')
+#def lowprice_button_message(message: Message) -> None:
+#    if message.text == LOW_PRICE_COMMAND['command_description']:
+#        lowprice(message)

@@ -16,6 +16,77 @@ def send_data_to_server(url, params, headers):
         return None
 
 
+def get_images_links(hotel_id):
+    url = 'https://hotels4.p.rapidapi.com/properties/get-hotel-photos'
+    params = {
+        'id': str(hotel_id)
+    }
+    headers = {
+        'X-RapidAPI-Key': RAPID_API_KEY,
+        'X-RapidAPI-Host': 'hotels4.p.rapidapi.com'
+    }
+    answer = send_data_to_server(url, params, headers)
+
+    if answer is not None:
+        images_info = json.loads(answer.text)
+        links = []
+        hotel_images = images_info.get('hotelImages', None)
+        links1 = hotel_images_by_size(hotel_images, 2, 4, 2)
+        room_images = images_info.get('roomImages', None)
+        links2 = room_images_by_size(room_images, 2, 4, 2)
+        if links1 is not None:
+            links += links1
+        if links2 is not None:
+            links += links2
+        if len(links) == 0:
+            return False, None
+        return True, links
+    return False, None
+
+
+def hotel_images_by_size(data, min_size, max_size, cnt):
+    cur_ind = 0
+    rez = []
+    if data is not None:
+        for el in data:
+            sizes = el.get("sizes", None)
+            if sizes is not None:
+                for size in sizes:
+                    t = size.get("type", -1)
+                    if (t >= min_size) and (t <= max_size):
+                        rez.append(el['baseUrl'].format(size=size["suffix"]))
+                        cur_ind += 1
+                        break
+                if cur_ind == cnt:
+                    return rez
+    if len(rez) == 0:
+        return None
+    return rez
+
+
+def room_images_by_size(data, min_size, max_size, cnt):
+    cur_ind = 0
+    rez = []
+    if data is not None:
+        for room in data:
+            apartments = room.get("images", None)
+            if apartments is not None:
+                for apartment in apartments:
+                    sizes = apartment.get('sizes', None)
+                    if sizes is not None:
+                        for size in sizes:
+                            t = size.get("type", -1)
+                            if (t >= min_size) and (t <= max_size):
+                                rez.append(apartment['baseUrl'].format(size=size["suffix"]))
+                                cur_ind += 1
+                                break
+                        if cur_ind == cnt:
+                            return rez
+    if len(rez) == 0:
+        return None
+    return rez
+
+
 def get_lowprice_hotels(town):
     start_date, end_date = get_dates_for_low_high_prices()
     return get_hotels(town, start_date, end_date, 'PRICE')
