@@ -34,6 +34,8 @@ def get_images_links_from_server(hotel_id):
     if is_success:
         for link in links:
             print(link)
+        return links
+    return None
 
 
 def get_lowprice_data_from_server():

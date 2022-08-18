@@ -4,7 +4,7 @@ from config_data.config import RAPID_API_KEY
 from utils.misc.data_utils import get_dates_for_low_high_prices
 
 
-def send_data_to_server(url, params, headers):
+def send_data_to_server(url, params={}, headers={}):
     try:
         response = requests.get(url, headers=headers, params=params, timeout=10)
         if response.status_code == requests.codes.ok:
@@ -42,6 +42,12 @@ def get_images_links(hotel_id):
             return False, None
         return True, links
     return False, None
+
+
+def load_image(url):
+    response = send_data_to_server(url)
+    with open('./Image.jpg', 'wb') as f:
+        f.write(response.content)
 
 
 def hotel_images_by_size(data, min_size, max_size, cnt):
