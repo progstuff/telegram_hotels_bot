@@ -1,13 +1,10 @@
 from loader import bot
-from keyboards.inline.hotels_chooser import hotels_paginator, add_photo_buttons
-from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server
-from db.hotels_parser import get_hotel_id
-from db.hotels_parser import get_lowprice_hotel_data
-from utils.misc.rapid_api_utils import load_image
 from handlers.custom_handlers.lowprice import lowprice_data
 from states.lowprice_information import UserLowPriceState
 from keyboards.inline.yes_no import get_yes_no_keyboard
-from telebot.types import InputMedia
+from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
+from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server
+
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_page_numbers')
 def hotels_page_callback(call):
@@ -44,17 +41,24 @@ def hotels_show_image_choose(call):
     """.format(city, pages_cnt, image_choose)
     bot.send_message(chat_id=call.message.chat.id, text=mes)
 
-    #get_lowprice_data_from_server()
-    #links = get_images_links_from_server(get_hotel_id(0))
-
-    #if links is not None:
-        #load_image(links[0])
-
-
+    hotels_cnt = get_lowprice_data_from_server(call.message.chat.id)
     bot.delete_state(call.message.from_user.id, call.message.chat.id)
-    page_ind = 1
-    image_ind = 1
-    change_page(call, page_ind, image_ind, True)
+
+    if hotels_cnt > 0:
+        if hotels_cnt < lowprice_data[call.message.chat.id].max_page_index:
+            lowprice_data[call.message.chat.id].max_page_index = hotels_cnt
+            bot.send_message(chat_id=call.message.chat.id, text="Доступно отелей для просмотра: {}".format(hotels_cnt))
+        if is_need_images:
+            get_images_links_from_server(call.message.chat.id)
+
+        #if links is not None:
+            #load_image(links[0])
+
+        page_ind = 1
+        image_ind = 1
+        change_hotel_page(call.message.chat.id, page_ind, image_ind, True, lowprice_data, 'lowprice_page', 'lowprice_image')
+    else:
+        bot.send_message(chat_id=call.message.chat.id, text="Нет отелей для просмотра")
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_page')
@@ -62,89 +66,14 @@ def hotel_page_callback(call):
     page_ind = int(call.data.split('#')[1])
     if not(page_ind == lowprice_data[call.message.chat.id].cur_page_index):
         image_ind = 1
-        change_page(call, page_ind, image_ind, False)
+        change_hotel_page(call.message.chat.id, page_ind, image_ind, False, lowprice_data, 'lowprice_page', 'lowprice_image')
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image')
 def hotel_image_callback(call):
-    type_btn = call.data.split('#')[1]
-    if type_btn != 'cur':
-        prev_image_ind = lowprice_data[call.message.chat.id].cur_image_index
-        if type_btn == 'prev':
-            lowprice_data[call.message.chat.id].cur_image_index -= 1
-        elif type_btn == 'next':
-            lowprice_data[call.message.chat.id].cur_image_index += 1
-
-        image_ind = lowprice_data[call.message.chat.id].cur_image_index
-        if not(prev_image_ind == image_ind):
-            page_ind = lowprice_data[call.message.chat.id].cur_page_index
-            change_page(call, page_ind, image_ind, False)
+    hotel_image_slide_photo(call, lowprice_data, 'lowprice_page', 'lowprice_image')
 
 
-def change_page(call, page, image_index, is_first):
-    lowprice_data[call.message.chat.id].cur_page_index = page
-    pages_cnt = lowprice_data[call.message.chat.id].max_page_index
-    paginator = hotels_paginator(page, pages_cnt, 'lowprice_page')
-    is_need_images = lowprice_data[call.message.chat.id].image_choose
-    if is_need_images:
-        lowprice_data[call.message.chat.id].cur_image_index = image_index
-        cur_image_index = lowprice_data[call.message.chat.id].cur_image_index
-        max_image_index = lowprice_data[call.message.chat.id].max_image_index
-        add_photo_buttons(paginator, cur_image_index, max_image_index, 'lowprice_image')
-    hotel_data = get_lowprice_hotel_data(page-1)
-    if is_first:
-        if is_need_images:
-            bot.send_photo(
-                chat_id=call.message.chat.id,
-                photo='https://exp.cdn-hotels.com/hotels/49000000/48650000/48642800/48642704/701b9b1f_b.jpg',
-                caption=hotel_data,
-                reply_markup=paginator.markup,
-                parse_mode='Markdown'
-            )
-        else:
-            bot.send_message(
-                call.message.chat.id,
-                hotel_data,
-                reply_markup=paginator.markup,
-                parse_mode='Markdown'
-            )
-    else:
-        if is_need_images:
-            #bot.edit_message_text(
-            #    chat_id=call.message.chat.id,
-            #    message_id=call.message.message_id,
-            #    text=hotel_data,
-            #    reply_markup=paginator.markup,
-            #    parse_mode='Markdown'
-            #)
-            if image_index%2 == 0:
-                bot.edit_message_media(
-                    media=InputMedia(type='photo', media='https://exp.cdn-hotels.com/hotels/49000000/48650000/48642800/48642704/d57992df_b.jpg'),
-                    chat_id=call.message.chat.id,
-                    message_id=call.message.message_id
-                    #reply_markup=paginator.markup,
-                )
-            else:
-                bot.edit_message_media(
-                    media=InputMedia(type='photo',
-                                     media='https://exp.cdn-hotels.com/hotels/49000000/48650000/48642800/48642704/701b9b1f_b.jpg'),
-                    chat_id=call.message.chat.id,
-                    message_id=call.message.message_id
-                    # reply_markup=paginator.markup,
-                )
-            bot.edit_message_caption(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                caption=hotel_data,
-                reply_markup=paginator.markup,
-                parse_mode='Markdown'
-            )
 
-        else:
-            bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=hotel_data,
-                reply_markup=paginator.markup,
-                parse_mode='Markdown'
-            )
+
+

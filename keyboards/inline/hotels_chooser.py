@@ -22,10 +22,11 @@ def hotels_paginator(page, pages_cnt, data_prefix):
     return paginator
 
 
-def add_photo_buttons(paginator, photo_number, photos_numbers, data_prefix):
-    paginator.add_before(
+def get_photo_keyboard(photo_number, photos_numbers, data_prefix):
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    keyboard.row(
         InlineKeyboardButton('<', callback_data=data_prefix + '#prev'),
         InlineKeyboardButton('{0}/{1}'.format(photo_number, photos_numbers), callback_data=data_prefix + '#cur'),
         InlineKeyboardButton('>', callback_data=data_prefix + '#next')
     )
-    return paginator
+    return keyboard
