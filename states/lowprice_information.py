@@ -5,6 +5,7 @@ class UserLowPriceState(StatesGroup):
     city = State()
     hotels_number = State()
     image_choose = State()
+    max_images_cnt = State()
 
 
 class UserLowPriceData:
@@ -37,6 +38,10 @@ class UserLowPriceData:
     @property
     def max_image_index(self):
         return self.__max_image_index
+
+    @max_image_index.setter
+    def max_image_index(self, new_val):
+        self.__max_image_index = new_val
 
     @property
     def cur_image_index(self):

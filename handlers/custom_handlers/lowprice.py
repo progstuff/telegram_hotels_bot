@@ -26,7 +26,7 @@ def lowprice_get_city(message: Message) -> None:
         bot.send_message(chat_id=message.chat.id, text='Поиск в городе: {0}'.format(town))
         bot.set_state(message.from_user.id, UserLowPriceState.hotels_number, message.chat.id)
 
-        keyboard = get_hotels_numbers_choose_keyboard()
+        keyboard = get_hotels_numbers_choose_keyboard('lowprice_hotel_pages_number', [1, 5, 10, 15])
         bot.send_message(message.from_user.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче', reply_markup=keyboard)
     else:
         bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')

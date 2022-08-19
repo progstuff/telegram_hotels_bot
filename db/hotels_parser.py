@@ -40,11 +40,11 @@ class Hotel:
         return rez
 
 
-def get_images_links_from_server(chat_id):
+def get_images_links_from_server(chat_id, max_images_cnt):
     hotels = hotels_data
     for hotel in hotels[chat_id]:
         hotel_id = hotel.id
-        is_success, links = get_images_links(hotel_id)
+        is_success, links = get_images_links(hotel_id, max_images_cnt)
         if is_success:
             hotel.links = links
 
@@ -58,8 +58,6 @@ def get_lowprice_data_from_server(chat_id):
         return len(hotels)
     return 0
     print(hotels)
-
-
 
 
 def get_hotel_id(chat_id, ind):

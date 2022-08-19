@@ -3,13 +3,12 @@ from telegram_bot_pagination import InlineKeyboardPaginator
 from telebot.types import InlineKeyboardButton
 
 
-def get_hotels_numbers_choose_keyboard():
+def get_hotels_numbers_choose_keyboard(key_data, values):
     keyboard = telebot.types.InlineKeyboardMarkup()
-    button1 = telebot.types.InlineKeyboardButton(text='1', callback_data='lowprice_page_numbers#1')
-    button5 = telebot.types.InlineKeyboardButton(text='5', callback_data='lowprice_page_numbers#5')
-    button10 = telebot.types.InlineKeyboardButton(text='10', callback_data='lowprice_page_numbers#10')
-    button15 = telebot.types.InlineKeyboardButton(text='15', callback_data='lowprice_page_numbers#15')
-    keyboard.row(button1, button5, button10, button15)
+    buttons = []
+    for val in values:
+        buttons.append(telebot.types.InlineKeyboardButton(text=str(val), callback_data='{0}#{1}'.format(key_data, val)))
+    keyboard.row(*buttons)
     return keyboard
 
 

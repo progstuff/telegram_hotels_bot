@@ -16,7 +16,7 @@ def send_data_to_server(url, params={}, headers={}):
         return None
 
 
-def get_images_links(hotel_id):
+def get_images_links(hotel_id, max_images_cnt):
     url = 'https://hotels4.p.rapidapi.com/properties/get-hotel-photos'
     params = {
         'id': str(hotel_id)
@@ -30,10 +30,22 @@ def get_images_links(hotel_id):
     if answer is not None:
         images_info = json.loads(answer.text)
         links = []
-        hotel_images = images_info.get('hotelImages', None)
-        links1 = hotel_images_by_size(hotel_images, 2, 4, 2)
-        room_images = images_info.get('roomImages', None)
-        links2 = room_images_by_size(room_images, 2, 4, 2)
+
+        if max_images_cnt == 1:
+            hotel_images = images_info.get('hotelImages', None)
+            links1 = hotel_images_by_size(hotel_images, 2, 4, 1)
+            links2 = None
+        elif max_images_cnt == 2:
+            hotel_images = images_info.get('hotelImages', None)
+            links1 = hotel_images_by_size(hotel_images, 2, 4, 1)
+            room_images = images_info.get('roomImages', None)
+            links2 = room_images_by_size(room_images, 2, 4, 1)
+        else:
+            hotel_images = images_info.get('hotelImages', None)
+            links1 = hotel_images_by_size(hotel_images, 2, 4, 1)
+            room_images = images_info.get('roomImages', None)
+            links2 = room_images_by_size(room_images, 2, 4, max_images_cnt - 1)
+
         if links1 is not None:
             links += links1
         if links2 is not None:
