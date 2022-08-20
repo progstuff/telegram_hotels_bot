@@ -43,11 +43,17 @@ def send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_i
     if is_need_images:
         image_index = data_storage[chat_id].cur_image_index
         page_index = data_storage[chat_id].cur_page_index
-        sended_message = bot.send_photo(
-            chat_id=chat_id,
-            photo=get_hotel_image(chat_id, page_index, image_index),
-            reply_markup=photo_keyboard
-        )
+        if photo_keyboard is not None:
+            sended_message = bot.send_photo(
+                chat_id=chat_id,
+                photo=get_hotel_image(chat_id, page_index, image_index),
+                reply_markup=photo_keyboard
+            )
+        else:
+            sended_message = bot.send_photo(
+                chat_id=chat_id,
+                photo=get_hotel_image(chat_id, page_index, image_index)
+            )
         data_storage[sended_message.chat.id].photo_message_id = sended_message.id
     sended_message = bot.send_message(
         chat_id,
@@ -63,13 +69,22 @@ def update_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need
         try:
             image_index = data_storage[chat_id].cur_image_index
             page_index = data_storage[chat_id].cur_page_index
-            bot.edit_message_media(
-                media=InputMedia(type='photo',
-                                 media=get_hotel_image(chat_id, page_index, image_index)),
-                chat_id=chat_id,
-                reply_markup=photo_keyboard,
-                message_id=data_storage[chat_id].photo_message_id
-            )
+            if photo_keyboard is not None:
+                bot.edit_message_media(
+                    media=InputMedia(type='photo',
+                                     media=get_hotel_image(chat_id, page_index, image_index)),
+                    chat_id=chat_id,
+                    reply_markup=photo_keyboard,
+                    message_id=data_storage[chat_id].photo_message_id
+                )
+            else:
+                bot.edit_message_media(
+                    media=InputMedia(type='photo',
+                                     media=get_hotel_image(chat_id, page_index, image_index)),
+                    chat_id=chat_id,
+                    message_id=data_storage[chat_id].photo_message_id
+                )
+
         except ApiTelegramException:
             print('фото без изменений')
     try:

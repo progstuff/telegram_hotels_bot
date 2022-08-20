@@ -10,7 +10,8 @@ class UserLowPriceState(StatesGroup):
 
 class UserLowPriceData:
     def __init__(self):
-        self.__city = ''
+        self.__city_en = ''
+        self.__city_ru = ''
         self.__image_choose = False
         self.__cur_image_index = 1
         self.__max_image_index = 2
@@ -18,14 +19,23 @@ class UserLowPriceData:
         self.__max_page_index = 5
         self.__photo_message_id = 0
         self.__text_message_id = 0
+        self.__town_keyboard_message_id = 0
 
     @property
-    def city(self):
-        return self.__city
+    def city_en(self):
+        return self.__city_en
 
-    @city.setter
-    def city(self, city):
-        self.__city = city
+    @city_en.setter
+    def city_en(self, city):
+        self.__city_en = city
+
+    @property
+    def city_ru(self):
+        return self.__city_ru
+
+    @city_ru.setter
+    def city_ru(self, city):
+        self.__city_ru = city
 
     @property
     def image_choose(self):
@@ -83,6 +93,14 @@ class UserLowPriceData:
     @text_message_id.setter
     def text_message_id(self, new_id):
         self.__text_message_id = new_id
+
+    @property
+    def town_keyboard_message_id(self):
+        return self.__town_keyboard_message_id
+
+    @town_keyboard_message_id.setter
+    def town_keyboard_message_id(self, new_id):
+        self.__town_keyboard_message_id = new_id
 
 
 

@@ -9,11 +9,15 @@ class Hotel:
         self.__name = ''
         self.__address = ''
         self.__center_dist = ''
+        self.__price = ''
+        self.__price_total = ''
         self.__links = []
+        self.__hotel_link = ''
         self.set_hotel_data(hotel_data)
 
     def set_hotel_data(self, hotel):
         self.__id = hotel.get('id', None)
+        self.__hotel_link = "https://www.hotels.com/ho{}".format(self.__id)
         self.__name = hotel.get('name', None)
         adr = hotel.get('address')
         if type(adr) is dict:
@@ -22,6 +26,16 @@ class Hotel:
         if type(landmarks) is list:
             if landmarks[0].get('label', '') == 'City center':
                 self.__center_dist = landmarks[0].get('distance', '')
+        rate_plan = hotel.get('ratePlan', None)
+        if rate_plan is not None:
+            price = rate_plan.get("price", None)
+            if price is not None:
+                price_current = price.get('current', None)
+                if price_current is not None:
+                    self.__price = price_current
+                price_total = price.get('fullyBundledPricePerStay', None)
+                if price_total is not None:
+                    self.__price_total = price_total
 
     @property
     def links(self):
@@ -36,28 +50,33 @@ class Hotel:
         return self.__id
 
     def get_str_view(self):
-        rez = '\n'.join([self.__name, self.__address, self.__center_dist])
+        rez = '\n'.join(["отель {}".format(self.__name),
+                         "адрес: {}".format(self.__address),
+                         "расстояние до центра {}".format(self.__center_dist),
+                         "цена за ночь {}".format(self.__price),
+                         "ссылка на отель: {}".format(self.__hotel_link)])
         return rez
 
 
-def get_images_links_from_server(chat_id, max_images_cnt):
-    hotels = hotels_data
-    for hotel in hotels[chat_id]:
-        hotel_id = hotel.id
-        is_success, links = get_images_links(hotel_id, max_images_cnt)
-        if is_success:
-            hotel.links = links
+def get_images_links_from_server(hotel, max_images_cnt):
+    hotel_id = hotel.id
+    is_success, links = get_images_links(hotel_id, max_images_cnt)
+    if is_success:
+        hotel.links = links
+        return len(links)
+    return 0
 
 
-def get_lowprice_data_from_server(chat_id):
-    is_success, hotels = get_lowprice_hotels('new york')
+def get_lowprice_data_from_server(chat_id, town, max_pages_cnt):
+    is_success, hotels = get_lowprice_hotels(town, max_pages_cnt)
     if is_success:
         hotels_data[chat_id] = []
         for hotel in hotels:
             hotels_data[chat_id].append(Hotel(hotel))
+        print(hotels)
         return len(hotels)
+    print('отели не получены')
     return 0
-    print(hotels)
 
 
 def get_hotel_id(chat_id, ind):
@@ -65,6 +84,14 @@ def get_hotel_id(chat_id, ind):
     if data is not None:
         if ind <= len(data):
             return data[ind-1].id
+    return None
+
+
+def get_hotel(chat_id, ind):
+    data = hotels_data.get(chat_id, None)
+    if data is not None:
+        if ind <= len(data):
+            return data[ind-1]
     return None
 
 

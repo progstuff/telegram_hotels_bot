@@ -6,6 +6,7 @@ from utils.misc.data_utils import get_dates_for_low_high_prices
 
 def send_data_to_server(url, params={}, headers={}):
     try:
+
         response = requests.get(url, headers=headers, params=params, timeout=10)
         if response.status_code == requests.codes.ok:
             return response
@@ -105,23 +106,25 @@ def room_images_by_size(data, min_size, max_size, cnt):
     return rez
 
 
-def get_lowprice_hotels(town):
+def get_lowprice_hotels(town, max_pages_cnt):
     start_date, end_date = get_dates_for_low_high_prices()
-    return get_hotels(town, start_date, end_date, 'PRICE')
+    return get_hotels(town, max_pages_cnt, start_date, end_date, 'PRICE')
 
 
-def get_hotels(town: str, date_in: str, date_out: str, sort_rule: str):
+def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str):
     is_finded, locations = get_locations_from_server(town)
 
     if is_finded:
+        if len(locations) == 0:
+            return False, None
         town_id = locations[0][0]
-        is_finded, hotels = get_hotels_from_server(town_id, date_in, date_out, sort_rule)
+        is_finded, hotels = get_hotels_from_server(town_id, max_pages_cnt, date_in, date_out, sort_rule)
 
         return is_finded, hotels
 
     return False, None
 
-def get_hotels_from_server(town_id: str, date_in: str, date_out: str, sort_rule: str):
+def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str):
     """
     получает отели в выбранной локации
     """
@@ -129,12 +132,12 @@ def get_hotels_from_server(town_id: str, date_in: str, date_out: str, sort_rule:
     params = {
         'destinationId': town_id,
         'pageNumber': '1',
-        'pageSize': '10',
+        'pageSize': str(max_pages_cnt),
         'checkIn': date_in,
         'checkOut': date_out,
         'adults1': '1',
         'sortOrder': sort_rule,
-        'locale': 'en_US',
+        'locale': 'en_EN',
         'currency': 'USD'
     }
     headers = {
@@ -169,7 +172,7 @@ def get_locations_from_server(town: str) -> (bool, [(str, str), (str, str), ...]
     url = 'https://hotels4.p.rapidapi.com/locations/v2/search'
     params = {
         'query': town,
-        'locale': 'en_US',
+        'locale': 'en_EN',
         'currency': 'USD'
     }
     headers = {
@@ -191,5 +194,8 @@ def get_locations_from_server(town: str) -> (bool, [(str, str), (str, str), ...]
             if group_finded:
                 places = location.get('entities', None)
                 if places is not None:
-                    return True, [(place.get('destinationId'), place.get('name')) for place in places if place.get("type", "") == "CITY"]
+                    if len(places) > 0:
+                        return True, [(place.get('destinationId'), place.get('name')) for place in places if place.get("type", "") == "CITY"]
+
+
     return False, None

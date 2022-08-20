@@ -1,10 +1,11 @@
 from loader import bot
-from handlers.custom_handlers.lowprice import lowprice_data
+from handlers.custom_handlers.lowprice import lowprice_data, set_town
 from states.lowprice_information import UserLowPriceState
 from keyboards.inline.yes_no import get_yes_no_keyboard
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
-from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server
+from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server, get_hotel
+from utils.misc.data_utils import get_complete_town_name
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_hotel_pages_number')
@@ -37,7 +38,7 @@ def hotels_show_image_choose(call):
         bot.send_message(chat_id=call.message.chat.id, text=mes)
         bot.delete_state(call.message.from_user.id, call.message.chat.id)
         load_data(call.message.chat.id, lowprice_data)
-        
+
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image_pages_number')
 def hotels_show_image_choose(call):
@@ -53,6 +54,7 @@ def hotels_show_image_choose(call):
     bot.delete_state(call.message.from_user.id, call.message.chat.id)
     load_data(call.message.chat.id, lowprice_data)
 
+
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_page')
 def hotel_page_callback(call):
     page_ind = int(call.data.split('#')[1])
@@ -66,9 +68,16 @@ def hotel_image_callback(call):
     hotel_image_slide_photo(call, lowprice_data, 'lowprice_page', 'lowprice_image')
 
 
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='town_lowprice')
+def town_callback(call):
+    town_en = call.data.split('#')[1]
+    towns_ru, towns_en = get_complete_town_name(town_en)
+    set_town(call.message, lowprice_data, towns_ru[0], town_en)
+
+
 def get_info_message(data_storage, chat_id):
     pages_cnt = data_storage[chat_id].max_page_index
-    city = data_storage[chat_id].city
+    city = data_storage[chat_id].city_ru
     if data_storage[chat_id].image_choose:
         max_images_cnt = data_storage[chat_id].max_image_index
         mes = """Все данные получены. Выбраны следующие параметры запроса:\n
@@ -84,15 +93,19 @@ def get_info_message(data_storage, chat_id):
 
 
 def load_data(chat_id, data_storage):
-    hotels_cnt = get_lowprice_data_from_server(chat_id)
+    town = data_storage[chat_id].city_en
+    hotels_cnt = get_lowprice_data_from_server(chat_id, town, lowprice_data[chat_id].max_page_index)
     if hotels_cnt > 0:
         if hotels_cnt < lowprice_data[chat_id].max_page_index:
             lowprice_data[chat_id].max_page_index = hotels_cnt
-            bot.send_message(chat_id=chat_id, text="Доступно отелей для просмотра: {}".format(hotels_cnt))
-            image_choose = data_storage[chat_id].image_choose
-            if image_choose:
-                max_images_cnt = data_storage[chat_id].max_image_index
-                get_images_links_from_server(chat_id, max_images_cnt)
+
+        bot.send_message(chat_id=chat_id, text="Доступно отелей для просмотра: {}".format(hotels_cnt))
+        image_choose = data_storage[chat_id].image_choose
+        if image_choose:
+            max_images_cnt = data_storage[chat_id].max_image_index
+            for hotel_ind in range(1, hotels_cnt+1):
+                images_cnt = get_images_links_from_server(get_hotel(chat_id, hotel_ind), max_images_cnt)
+                bot.send_message(chat_id=chat_id, text="получено изображений для отеля №{0}: {1}".format(hotel_ind, images_cnt))
 
         page_ind = 1
         image_ind = 1
