@@ -4,7 +4,7 @@ hotels_data = {}
 
 
 class Hotel:
-    def __init__(self, hotel_data):
+    def __init__(self, hotel_data: dict):
         self.__id = 0
         self.__name = ''
         self.__address = ''
@@ -15,7 +15,7 @@ class Hotel:
         self.__hotel_link = ''
         self.set_hotel_data(hotel_data)
 
-    def set_hotel_data(self, hotel):
+    def set_hotel_data(self, hotel: dict) -> None:
         self.__id = hotel.get('id', None)
         self.__hotel_link = "https://www.hotels.com/ho{}".format(self.__id)
         self.__name = hotel.get('name', None)
@@ -38,18 +38,18 @@ class Hotel:
                     self.__price_total = price_total
 
     @property
-    def links(self):
+    def links(self) -> str:
         return self.__links
 
     @links.setter
-    def links(self, new_links):
+    def links(self, new_links: list) -> None:
         self.__links = new_links[:]
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self.__id
 
-    def get_str_view(self):
+    def get_str_view(self) -> str:
         rez = '\n'.join(["отель {}".format(self.__name),
                          "адрес: {}".format(self.__address),
                          "расстояние до центра {}".format(self.__center_dist),
@@ -58,7 +58,7 @@ class Hotel:
         return rez
 
 
-def get_images_links_from_server(hotel, max_images_cnt):
+def get_images_links_from_server(hotel: dict, max_images_cnt: int) -> int:
     hotel_id = hotel.id
     is_success, links = get_images_links(hotel_id, max_images_cnt)
     if is_success:
@@ -67,7 +67,7 @@ def get_images_links_from_server(hotel, max_images_cnt):
     return 0
 
 
-def get_lowprice_data_from_server(chat_id, town, max_pages_cnt):
+def get_lowprice_data_from_server(chat_id: int, town: str, max_pages_cnt: int) -> int:
     is_success, hotels = get_lowprice_hotels(town, max_pages_cnt)
     if is_success:
         hotels_data[chat_id] = []
@@ -79,7 +79,7 @@ def get_lowprice_data_from_server(chat_id, town, max_pages_cnt):
     return 0
 
 
-def get_hotel_id(chat_id, ind):
+def get_hotel_id(chat_id: int, ind: int) -> int:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
@@ -87,7 +87,7 @@ def get_hotel_id(chat_id, ind):
     return None
 
 
-def get_hotel(chat_id, ind):
+def get_hotel(chat_id: int, ind: int) -> dict:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
@@ -95,7 +95,7 @@ def get_hotel(chat_id, ind):
     return None
 
 
-def get_hotel_image(chat_id, hotel_ind, image_ind):
+def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if hotel_ind <= len(data):
@@ -105,7 +105,7 @@ def get_hotel_image(chat_id, hotel_ind, image_ind):
     return None
 
 
-def get_lowprice_hotel_data(chat_id, ind):
+def get_lowprice_hotel_data(chat_id: int, ind: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):

@@ -2,9 +2,10 @@ import requests
 import json
 from config_data.config import RAPID_API_KEY
 from utils.misc.data_utils import get_dates_for_low_high_prices
+from requests import Response
 
 
-def send_data_to_server(url, params={}, headers={}):
+def send_data_to_server(url: str, params={}, headers={}) -> Response:
     try:
 
         response = requests.get(url, headers=headers, params=params, timeout=10)
@@ -17,7 +18,7 @@ def send_data_to_server(url, params={}, headers={}):
         return None
 
 
-def get_images_links(hotel_id, max_images_cnt):
+def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
     url = 'https://hotels4.p.rapidapi.com/properties/get-hotel-photos'
     params = {
         'id': str(hotel_id)
@@ -57,13 +58,13 @@ def get_images_links(hotel_id, max_images_cnt):
     return False, None
 
 
-def load_image(url):
+def load_image(url: str) -> None:
     response = send_data_to_server(url)
     with open('./Image.jpg', 'wb') as f:
         f.write(response.content)
 
 
-def hotel_images_by_size(data, min_size, max_size, cnt):
+def hotel_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
     cur_ind = 0
     rez = []
     if data is not None:
@@ -83,7 +84,7 @@ def hotel_images_by_size(data, min_size, max_size, cnt):
     return rez
 
 
-def room_images_by_size(data, min_size, max_size, cnt):
+def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
     cur_ind = 0
     rez = []
     if data is not None:
@@ -106,12 +107,12 @@ def room_images_by_size(data, min_size, max_size, cnt):
     return rez
 
 
-def get_lowprice_hotels(town, max_pages_cnt):
+def get_lowprice_hotels(town: str, max_pages_cnt: int) -> (bool, list):
     start_date, end_date = get_dates_for_low_high_prices()
     return get_hotels(town, max_pages_cnt, start_date, end_date, 'PRICE')
 
 
-def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str):
+def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str) -> (bool, list):
     is_finded, locations = get_locations_from_server(town)
 
     if is_finded:
@@ -124,7 +125,8 @@ def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_
 
     return False, None
 
-def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str):
+
+def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str) -> (bool, list):
     """
     получает отели в выбранной локации
     """
@@ -196,6 +198,5 @@ def get_locations_from_server(town: str) -> (bool, [(str, str), (str, str), ...]
                 if places is not None:
                     if len(places) > 0:
                         return True, [(place.get('destinationId'), place.get('name')) for place in places if place.get("type", "") == "CITY"]
-
 
     return False, None

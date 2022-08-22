@@ -3,9 +3,11 @@ from keyboards.inline.hotels_chooser import hotels_paginator, get_photo_keyboard
 from db.hotels_parser import get_lowprice_hotel_data, get_hotel_image
 from telebot.types import InputMedia
 from telebot.apihelper import ApiTelegramException
+from telebot.types import CallbackQuery
+from telegram_bot_pagination import InlineKeyboardPaginator
 
 # одинаковый код для lowprice, highprice
-def hotel_image_slide_photo(call, data_storage, hotel_kbrd_key, image_kbrd_key):
+def hotel_image_slide_photo(call: CallbackQuery, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str) -> None:
     type_btn = call.data.split('#')[1]
     if type_btn != 'cur':
         prev_image_ind = data_storage[call.message.chat.id].cur_image_index
@@ -20,7 +22,7 @@ def hotel_image_slide_photo(call, data_storage, hotel_kbrd_key, image_kbrd_key):
             change_hotel_page(call.message.chat.id, page_ind, image_ind, False, data_storage, hotel_kbrd_key, image_kbrd_key)
 
 
-def change_hotel_page(chat_id, page, image_index, is_first, data_storage, hotel_kbrd_key, image_kbrd_key):
+def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str):
     data_storage[chat_id].cur_page_index = page
     pages_cnt = data_storage[chat_id].max_page_index
     paginator = hotels_paginator(page, pages_cnt, hotel_kbrd_key)
@@ -39,7 +41,7 @@ def change_hotel_page(chat_id, page, image_index, is_first, data_storage, hotel_
         update_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage)
 
 
-def send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage):
+def send_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboardPaginator, photo_keyboard: str, is_need_images: bool, data_storage: dict) -> None:
     if is_need_images:
         image_index = data_storage[chat_id].cur_image_index
         page_index = data_storage[chat_id].cur_page_index
@@ -64,7 +66,7 @@ def send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_i
     data_storage[sended_message.chat.id].text_message_id = sended_message.id
 
 
-def update_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage):
+def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboardPaginator, photo_keyboard: str, is_need_images: bool, data_storage: dict):
     if is_need_images:
         try:
             image_index = data_storage[chat_id].cur_image_index

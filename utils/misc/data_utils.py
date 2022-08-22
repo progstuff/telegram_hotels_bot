@@ -2,7 +2,7 @@ import datetime
 from config_data.config import TOWNS
 
 
-def get_complete_town_name(town):
+def get_complete_town_name(town: str) -> (list, list):
     ltown = town.lower()
     towns_ru = []
     towns_en = []

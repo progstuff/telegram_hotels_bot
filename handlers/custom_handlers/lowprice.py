@@ -6,6 +6,7 @@ from states.lowprice_information import UserLowPriceState, UserLowPriceData
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
 
+
 lowprice_data = dict()
 
 
@@ -35,7 +36,7 @@ def lowprice_get_city(message: Message) -> None:
         bot.set_state(message.from_user.id, UserLowPriceState.city, message.chat.id)
 
 
-def set_town(message, data_storage, town_ru, town_en):
+def set_town(message: Message, data_storage: dict, town_ru: str, town_en: str) -> None:
     town = town_ru
     data_storage[message.chat.id].city_ru = town_ru
     data_storage[message.chat.id].city_en = town_en

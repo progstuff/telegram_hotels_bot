@@ -6,10 +6,11 @@ from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server, get_hotel
 from utils.misc.data_utils import get_complete_town_name
+from telebot.types import CallbackQuery
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_hotel_pages_number')
-def hotels_page_callback(call):
+def hotels_page_callback(call: CallbackQuery) -> None:
     pages_cnt = int(call.data.split('#')[1])
     lowprice_data[call.message.chat.id].max_page_index = pages_cnt
     keyboard = get_yes_no_keyboard('lowprice_image_choose')
@@ -22,7 +23,7 @@ def hotels_page_callback(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image_choose')
-def hotels_show_image_choose(call):
+def hotels_show_image_choose(call: CallbackQuery) -> None:
     if call.data.split('#')[1] == 'yes':
         lowprice_data[call.message.chat.id].image_choose = True
 
@@ -41,7 +42,7 @@ def hotels_show_image_choose(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image_pages_number')
-def hotels_show_image_choose(call):
+def hotels_show_image_choose(call: CallbackQuery) -> None:
     max_images_cnt = int(call.data.split('#')[1])
     lowprice_data[call.message.chat.id].max_image_index = max_images_cnt
 
@@ -56,7 +57,7 @@ def hotels_show_image_choose(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_page')
-def hotel_page_callback(call):
+def hotel_page_callback(call: CallbackQuery) -> None:
     page_ind = int(call.data.split('#')[1])
     if not(page_ind == lowprice_data[call.message.chat.id].cur_page_index):
         image_ind = 1
@@ -64,18 +65,18 @@ def hotel_page_callback(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image')
-def hotel_image_callback(call):
+def hotel_image_callback(call: CallbackQuery) -> None:
     hotel_image_slide_photo(call, lowprice_data, 'lowprice_page', 'lowprice_image')
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='town_lowprice')
-def town_callback(call):
+def town_callback(call: CallbackQuery) -> None:
     town_en = call.data.split('#')[1]
     towns_ru, towns_en = get_complete_town_name(town_en)
     set_town(call.message, lowprice_data, towns_ru[0], town_en)
 
 
-def get_info_message(data_storage, chat_id):
+def get_info_message(data_storage: dict, chat_id: int) -> None:
     pages_cnt = data_storage[chat_id].max_page_index
     city = data_storage[chat_id].city_ru
     if data_storage[chat_id].image_choose:
@@ -92,7 +93,7 @@ def get_info_message(data_storage, chat_id):
     return mes
 
 
-def load_data(chat_id, data_storage):
+def load_data(chat_id: int, data_storage: dict) -> None:
     town = data_storage[chat_id].city_en
     hotels_cnt = get_lowprice_data_from_server(chat_id, town, lowprice_data[chat_id].max_page_index)
     if hotels_cnt > 0:
