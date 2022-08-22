@@ -7,13 +7,14 @@ from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_lowprice_data_from_server, get_images_links_from_server, get_hotel
 from utils.misc.data_utils import get_complete_town_name
 from telebot.types import CallbackQuery
+from handlers.custom_handlers.lowprice import CUR_COMMAND
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_hotel_pages_number')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['hotels_pages_number_key'])
 def hotels_page_callback(call: CallbackQuery) -> None:
     pages_cnt = int(call.data.split('#')[1])
     lowprice_data[call.message.chat.id].max_page_index = pages_cnt
-    keyboard = get_yes_no_keyboard('lowprice_image_choose')
+    keyboard = get_yes_no_keyboard(CUR_COMMAND['image_dialog_key'])
 
     bot.edit_message_text(chat_id=call.message.chat.id,
                           message_id=call.message.message_id,
@@ -22,12 +23,12 @@ def hotels_page_callback(call: CallbackQuery) -> None:
     bot.set_state(call.message.from_user.id, UserLowPriceState.image_choose, call.message.chat.id)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image_choose')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['image_dialog_key'])
 def hotels_show_image_choose(call: CallbackQuery) -> None:
     if call.data.split('#')[1] == 'yes':
         lowprice_data[call.message.chat.id].image_choose = True
 
-        keyboard = get_hotels_numbers_choose_keyboard('lowprice_image_pages_number', [1, 2, 3])
+        keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'], [1, 2, 3])
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
                               text='Шаг 3 из 3: выберите сколько фото показывать для каждого отеля',
@@ -41,7 +42,7 @@ def hotels_show_image_choose(call: CallbackQuery) -> None:
         load_data(call.message.chat.id, lowprice_data)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image_pages_number')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['image_pages_number_key'])
 def hotels_show_image_choose(call: CallbackQuery) -> None:
     max_images_cnt = int(call.data.split('#')[1])
     lowprice_data[call.message.chat.id].max_image_index = max_images_cnt
@@ -56,20 +57,28 @@ def hotels_show_image_choose(call: CallbackQuery) -> None:
     load_data(call.message.chat.id, lowprice_data)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_page')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['hotels_kbrd_page_key'])
 def hotel_page_callback(call: CallbackQuery) -> None:
     page_ind = int(call.data.split('#')[1])
     if not(page_ind == lowprice_data[call.message.chat.id].cur_page_index):
         image_ind = 1
-        change_hotel_page(call.message.chat.id, page_ind, image_ind, False, lowprice_data, 'lowprice_page', 'lowprice_image')
+        change_hotel_page(call.message.chat.id,
+                          page_ind, image_ind,
+                          False,
+                          lowprice_data,
+                          CUR_COMMAND['hotels_kbrd_page_key'],
+                          CUR_COMMAND['image_kbrd_page_key'])
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='lowprice_image')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['image_kbrd_page_key'])
 def hotel_image_callback(call: CallbackQuery) -> None:
-    hotel_image_slide_photo(call, lowprice_data, 'lowprice_page', 'lowprice_image')
+    hotel_image_slide_photo(call,
+                            lowprice_data,
+                            CUR_COMMAND['hotels_kbrd_page_key'],
+                            CUR_COMMAND['image_kbrd_page_key'])
 
 
-@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]=='town_lowprice')
+@bot.callback_query_handler(func=lambda call: call.data.split('#')[0]==CUR_COMMAND['town_choose_kbrd_key'])
 def town_callback(call: CallbackQuery) -> None:
     town_en = call.data.split('#')[1]
     towns_ru, towns_en = get_complete_town_name(town_en)
@@ -95,10 +104,10 @@ def get_info_message(data_storage: dict, chat_id: int) -> None:
 
 def load_data(chat_id: int, data_storage: dict) -> None:
     town = data_storage[chat_id].city_en
-    hotels_cnt = get_lowprice_data_from_server(chat_id, town, lowprice_data[chat_id].max_page_index)
+    hotels_cnt = get_lowprice_data_from_server(chat_id, town, data_storage[chat_id].max_page_index)
     if hotels_cnt > 0:
-        if hotels_cnt < lowprice_data[chat_id].max_page_index:
-            lowprice_data[chat_id].max_page_index = hotels_cnt
+        if hotels_cnt < data_storage[chat_id].max_page_index:
+            data_storage[chat_id].max_page_index = hotels_cnt
 
         bot.send_message(chat_id=chat_id, text="Доступно отелей для просмотра: {}".format(hotels_cnt))
         image_choose = data_storage[chat_id].image_choose
@@ -110,6 +119,12 @@ def load_data(chat_id: int, data_storage: dict) -> None:
 
         page_ind = 1
         image_ind = 1
-        change_hotel_page(chat_id, page_ind, image_ind, True, lowprice_data, 'lowprice_page', 'lowprice_image')
+        change_hotel_page(chat_id,
+                          page_ind,
+                          image_ind,
+                          True,
+                          data_storage,
+                          CUR_COMMAND['hotels_kbrd_page_key'],
+                          CUR_COMMAND['image_kbrd_page_key'])
     else:
         bot.send_message(chat_id=chat_id, text="Нет отелей для просмотра")

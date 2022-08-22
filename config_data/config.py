@@ -31,7 +31,16 @@ RAPID_API_KEY = os.getenv('RAPID_API_KEY')
 TOWNS = get_towns()
 START_COMMAND = {'command_name': 'start', 'command_description': '🚀 Начать сначала'}
 HELP_COMMAND = {'command_name': 'help', 'command_description': '❓ Вывести справку'}
-LOW_PRICE_COMMAND = {'command_name': 'lowprice', 'command_description': '🏨 бюджетные'}
+
+LOW_PRICE_COMMAND = {'command_name': 'lowprice',
+                     'command_description': '🏨 бюджетные',
+                     'image_dialog_key': 'lowprice_image_choose',
+                     'image_pages_number_key': 'lowprice_image_pages_number',
+                     'hotels_pages_number_key': 'lowprice_hotel_pages_number',
+                     'hotels_kbrd_page_key': 'lowprice_page',
+                     'image_kbrd_page_key': 'lowprice_image',
+                     'town_choose_kbrd_key': 'town_lowprice'}
+
 HIGH_PRICE_COMMAND = {'command_name': 'highprice', 'command_description': '🏨 дорогие'}
 BEST_DEAL_COMMAND = {'command_name': 'bestdeal', 'command_description': '🔎 поиск'}
 HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
@@ -46,5 +55,3 @@ HELP_MESSAGE = '''
 DEFAULT_COMMANDS = [START_COMMAND, HELP_COMMAND]
 CUSTOM_COMMANDS = [LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND]
 
-# тут должна быть БД
-HOTEL_PAGES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']

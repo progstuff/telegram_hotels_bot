@@ -8,6 +8,7 @@ from keyboards.inline.town_chooser import get_town_choose_keyboard
 
 
 lowprice_data = dict()
+CUR_COMMAND = LOW_PRICE_COMMAND
 
 
 @bot.message_handler(commands=[LOW_PRICE_COMMAND['command_name']])
@@ -25,7 +26,7 @@ def lowprice_get_city(message: Message) -> None:
         if len(towns_ru) == 1:
             set_town(message, lowprice_data, towns_ru[0], towns_en[0])
         else:
-            keyboard = get_town_choose_keyboard('town_lowprice', towns_ru, towns_en)
+            keyboard = get_town_choose_keyboard(CUR_COMMAND['town_choose_kbrd_key'], towns_ru, towns_en)
             mes = bot.send_message(message.from_user.id,
                              'Нет точного совпадения с имеющимися в базе городами, уточните город из предложенных. Если возможна ошибка ввода, введите город ещё раз',
                              reply_markup=keyboard)
@@ -50,7 +51,7 @@ def set_town(message: Message, data_storage: dict, town_ru: str, town_en: str) -
                          text='Совпадение с одним городом в базе. Поиск будет выполнен для города: {0}'.format(town))
 
     bot.set_state(message.from_user.id, UserLowPriceState.hotels_number, message.chat.id)
-    keyboard = get_hotels_numbers_choose_keyboard('lowprice_hotel_pages_number', [1, 5, 10, 15])
+    keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['hotels_pages_number_key'], [1, 5, 10, 15])
     bot.send_message(message.chat.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче',
                      reply_markup=keyboard)
 
