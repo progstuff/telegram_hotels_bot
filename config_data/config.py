@@ -41,7 +41,16 @@ LOW_PRICE_COMMAND = {'command_name': 'lowprice',
                      'image_kbrd_page_key': 'lowprice_image',
                      'town_choose_kbrd_key': 'town_lowprice'}
 
-HIGH_PRICE_COMMAND = {'command_name': 'highprice', 'command_description': '🏨 дорогие'}
+HIGH_PRICE_COMMAND = {'command_name': 'highprice',
+                      'command_description': '🏨 дорогие',
+                      'image_dialog_key': 'highprice_image_choose',
+                      'image_pages_number_key': 'highprice_image_pages_number',
+                      'hotels_pages_number_key': 'highprice_hotel_pages_number',
+                      'hotels_kbrd_page_key': 'highprice_page',
+                      'image_kbrd_page_key': 'highprice_image',
+                      'town_choose_kbrd_key': 'town_highprice'
+                      }
+
 BEST_DEAL_COMMAND = {'command_name': 'bestdeal', 'command_description': '🔎 поиск'}
 HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
 HELP_MESSAGE = '''

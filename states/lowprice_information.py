@@ -1,14 +1,14 @@
 from telebot.handler_backends import State, StatesGroup
 
 
-class UserLowPriceState(StatesGroup):
+class UserState(StatesGroup):
     city = State()
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
 
 
-class UserLowPriceData:
+class UserData:
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''

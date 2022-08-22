@@ -119,9 +119,9 @@ def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> l
     return rez
 
 
-def get_lowprice_hotels(town: str, max_pages_cnt: int) -> (bool, list):
+def get_filtered_hotels(town: str, max_pages_cnt: int, filter_value: str) -> (bool, list):
     start_date, end_date = get_dates_for_low_high_prices()
-    return get_hotels(town, max_pages_cnt, start_date, end_date, 'PRICE')
+    return get_hotels(town, max_pages_cnt, start_date, end_date, filter_value)
 
 
 def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str) -> (bool, list):
