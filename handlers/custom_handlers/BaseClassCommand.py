@@ -10,7 +10,7 @@ from keyboards.inline.yes_no import get_yes_no_keyboard
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from telebot.types import CallbackQuery
-
+from states.user_data_information import UserData, StatesGroup
 
 class BaseCommandHandlers:
     """
@@ -19,23 +19,23 @@ class BaseCommandHandlers:
     например команда highprice от lowprice отличается только параметром по которому фильтруются
     отели при отправлении запроса на сервер, поэтому для реализации этой команды можно наследовать класс без изменений
     """
-    def __init__(self, command_config, user_state_class, user_state_data):
+    def __init__(self, command_config: str, user_state_class: StatesGroup, user_state_data: UserData):
         self.__command_data = dict()
         self.__command_config = command_config
         self.__state_class = user_state_class
         self.__user_state_data = user_state_data
         self.__filter_value = 'PRICE'
 
-    def set_filter_value(self, new_val):
+    def set_filter_value(self, new_val: str) -> None:
         self.__filter_value = new_val
 
-    def command_from_menu(self, message):
+    def command_from_menu(self, message: Message) -> None:
         bot.set_state(message.from_user.id, self.__state_class.city, message.chat.id)
         bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
         bot.send_message(message.from_user.id, 'Шаг 1 из 3: Введите город')
         self.__command_data[message.chat.id] = self.__user_state_data
 
-    def set_message_handler(self):
+    def set_message_handler(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
         USER_STATE_DATA = self.__user_state_data
@@ -47,7 +47,7 @@ class BaseCommandHandlers:
             bot.send_message(message.from_user.id, 'Шаг 1 из 3: Введите город')
             self.__command_data[message.chat.id] = USER_STATE_DATA
 
-    def set_get_city_handler(self):
+    def set_get_city_handler(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
 
@@ -68,7 +68,7 @@ class BaseCommandHandlers:
                 bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')
                 bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
 
-    def set_hotels_page_callback(self):
+    def set_hotels_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
 
@@ -84,7 +84,7 @@ class BaseCommandHandlers:
             bot.send_message(chat_id=call.message.chat.id, text='Шаг 3 из 3: загружать фото отелей?', reply_markup=keyboard)
             bot.set_state(call.message.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
 
-    def set_hotels_show_image_choose_callback(self):
+    def set_hotels_show_image_choose_callback(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
 
@@ -106,7 +106,7 @@ class BaseCommandHandlers:
                 bot.delete_state(call.message.from_user.id, call.message.chat.id)
                 self.load_data(call.message.chat.id, self.__command_data)
 
-    def set_hotels_show_image_cnt_callback(self):
+    def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['image_pages_number_key'])
@@ -123,7 +123,7 @@ class BaseCommandHandlers:
             bot.delete_state(call.message.from_user.id, call.message.chat.id)
             self.load_data(call.message.chat.id, self.__command_data)
 
-    def set_hotel_page_callback(self):
+    def set_hotel_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['hotels_kbrd_page_key'])
@@ -138,7 +138,7 @@ class BaseCommandHandlers:
                                   CUR_COMMAND['hotels_kbrd_page_key'],
                                   CUR_COMMAND['image_kbrd_page_key'])
 
-    def set_hotel_image_callback(self):
+    def set_hotel_image_callback(self) -> None:
         CUR_COMMAND = self.__command_config
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['image_kbrd_page_key'])
@@ -148,7 +148,7 @@ class BaseCommandHandlers:
                                     CUR_COMMAND['hotels_kbrd_page_key'],
                                     CUR_COMMAND['image_kbrd_page_key'])
 
-    def set_town_callback(self):
+    def set_town_callback(self) -> None:
         CUR_COMMAND = self.__command_config
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['town_choose_kbrd_key'])
@@ -190,18 +190,6 @@ class BaseCommandHandlers:
         bot.send_message(message.chat.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче',
                          reply_markup=keyboard)
 
-    def set_handlers(self):
-        self.set_message_handler()
-        self.set_get_city_handler()
-
-    def set_callbacks(self):
-        self.set_hotels_page_callback()
-        self.set_hotels_show_image_choose_callback()
-        self.set_hotels_show_image_cnt_callback()
-        self.set_hotel_page_callback()
-        self.set_hotel_image_callback()
-        self.set_town_callback()
-
     def load_data(self, chat_id: int, data_storage: dict) -> None:
         town = data_storage[chat_id].city_en
         #####################
@@ -231,3 +219,16 @@ class BaseCommandHandlers:
                               self.__command_config['image_kbrd_page_key'])
         else:
             bot.send_message(chat_id=chat_id, text="Нет отелей для просмотра")
+
+    def set_handlers(self) -> None:
+        self.set_message_handler()
+        self.set_get_city_handler()
+
+    def set_callbacks(self) -> None:
+        self.set_hotels_page_callback()
+        self.set_hotels_show_image_choose_callback()
+        self.set_hotels_show_image_cnt_callback()
+        self.set_hotel_page_callback()
+        self.set_hotel_image_callback()
+        self.set_town_callback()
+

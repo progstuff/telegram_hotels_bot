@@ -1,4 +1,4 @@
-from states.lowprice_information import UserLowPriceState, UserData
+from states.user_data_information import UserLowPriceState, UserData
 from config_data.config import LOW_PRICE_COMMAND
 from handlers.custom_handlers.BaseClassCommand import BaseCommandHandlers
 
