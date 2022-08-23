@@ -105,9 +105,9 @@ def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
     return None
 
 
-def get_lowprice_hotel_data(chat_id: int, ind: int) -> str:
+def get_db_hotel_data(chat_id: int, ind: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
-            return data[ind - 1].get_str_view()
+            return data[ind].get_str_view()
     return ''

@@ -34,6 +34,7 @@ HELP_COMMAND = {'command_name': 'help', 'command_description': '❓ Вывест
 
 LOW_PRICE_COMMAND = {'command_name': 'lowprice',
                      'command_description': '🏨 бюджетные',
+                     'command_welcome_mes': 'Вы выбрали показать топ бюджетных отелей в городе',
                      'image_dialog_key': 'lowprice_image_choose',
                      'image_pages_number_key': 'lowprice_image_pages_number',
                      'hotels_pages_number_key': 'lowprice_hotel_pages_number',
@@ -43,6 +44,7 @@ LOW_PRICE_COMMAND = {'command_name': 'lowprice',
 
 HIGH_PRICE_COMMAND = {'command_name': 'highprice',
                       'command_description': '🏨 дорогие',
+                      'command_welcome_mes': 'Вы выбрали показать топ дорогих отелей в городе',
                       'image_dialog_key': 'highprice_image_choose',
                       'image_pages_number_key': 'highprice_image_pages_number',
                       'hotels_pages_number_key': 'highprice_hotel_pages_number',

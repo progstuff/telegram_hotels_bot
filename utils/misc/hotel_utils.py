@@ -1,6 +1,6 @@
 from loader import bot
 from keyboards.inline.hotels_chooser import hotels_paginator, get_photo_keyboard
-from db.hotels_parser import get_lowprice_hotel_data, get_hotel_image
+from db.hotels_parser import get_db_hotel_data, get_hotel_image
 from telebot.types import InputMedia
 from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery
@@ -34,7 +34,7 @@ def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool,
         max_image_index = data_storage[chat_id].max_image_index
         photo_keyboard = get_photo_keyboard(cur_image_index, max_image_index, image_kbrd_key)
 
-    hotel_data = get_lowprice_hotel_data(chat_id, page-1)
+    hotel_data = get_db_hotel_data(chat_id, page - 1)
     if is_first:
         send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage)
     else:
