@@ -11,7 +11,7 @@ from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
-from telebot.handler_backends import State
+
 
 class BaseCommandHandlers:
     """
@@ -26,6 +26,37 @@ class BaseCommandHandlers:
         self.__state_class = user_state_class
         self.__user_state_data = user_state_data
         self.__filter_value = 'PRICE'
+        self.__cur_step = 1
+        self.__max_steps_cnt = 3
+
+    def set_max_steps_cnt(self, max_steps_cnt):
+        self.__max_steps_cnt = max_steps_cnt
+
+    def increase_step(self):
+        if self.__cur_step < self.__max_steps_cnt:
+            self.__cur_step += 1
+        else:
+            self.__cur_step = 1
+
+    @property
+    def state_class(self):
+        return self.__state_class
+
+    @property
+    def command_data(self):
+        return self.__command_data
+
+    @property
+    def command_config(self):
+        return self.__command_config
+
+    @property
+    def max_steps_cnt(self):
+        return self.__max_steps_cnt
+
+    @property
+    def cur_step(self):
+        return self.__cur_step
 
     def set_filter_value(self, new_val: str) -> None:
         self.__filter_value = new_val
@@ -33,7 +64,9 @@ class BaseCommandHandlers:
     def command_from_menu(self, message: Message) -> None:
         bot.set_state(message.from_user.id, self.__state_class.city, message.chat.id)
         bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
-        bot.send_message(message.from_user.id, 'Шаг 1 из 3: Введите город')
+
+        bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
+        self.increase_step() # был шаг 1
         self.__command_data[message.chat.id] = self.__user_state_data
 
     def set_message_handler(self) -> None:
@@ -45,7 +78,8 @@ class BaseCommandHandlers:
         def command(message: Message) -> None:
             bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
             bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
-            bot.send_message(message.from_user.id, 'Шаг 1 из 3: Введите город')
+            bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
+            self.increase_step()  # был шаг 1
             self.__command_data[message.chat.id] = USER_STATE_DATA
 
     def set_get_city_handler(self) -> None:
@@ -83,8 +117,11 @@ class BaseCommandHandlers:
             bot.edit_message_text(chat_id=call.message.chat.id,
                                   message_id=call.message.message_id,
                                   text='Вы выбрали максимальное количество отелей показа за раз: {}'.format(pages_cnt))
-            bot.send_message(chat_id=call.message.chat.id, text='Шаг 3 из 3: загружать фото отелей?', reply_markup=keyboard)
+            bot.send_message(chat_id=call.message.chat.id,
+                             text='Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step, self.max_steps_cnt),
+                             reply_markup=keyboard)
             bot.set_state(call.message.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
+
 
     def set_hotels_show_image_choose_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -98,7 +135,8 @@ class BaseCommandHandlers:
                 keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'], [1, 2, 3])
                 bot.edit_message_text(chat_id=call.message.chat.id,
                                       message_id=call.message.message_id,
-                                      text='Шаг 3 из 3: выберите сколько фото показывать для каждого отеля',
+                                      text='Шаг {0} из {1}: выберите сколько фото показывать для каждого отеля'.format(self.cur_step,
+                                                                                                                       self.max_steps_cnt),
                                       reply_markup=keyboard)
                 bot.set_state(call.message.from_user.id, CUR_STATE.max_images_cnt, call.message.chat.id)
             else:
@@ -107,6 +145,7 @@ class BaseCommandHandlers:
                 bot.send_message(chat_id=call.message.chat.id, text=mes)
                 bot.delete_state(call.message.from_user.id, call.message.chat.id)
                 self.load_data(call.message.chat.id, self.__command_data)
+            self.increase_step()  # был шаг 3
 
     def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -194,8 +233,11 @@ class BaseCommandHandlers:
     def hotels_cnt_choose_step(self, message: Message):
         keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
                                                       [1, 5, 10, 15])
-        bot.send_message(message.chat.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче',
+        bot.send_message(message.chat.id,
+                         'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
+                                                                                          self.max_steps_cnt),
                          reply_markup=keyboard)
+        self.increase_step()  # был шаг 2
 
     def load_data(self, chat_id: int, data_storage: dict) -> None:
         town = data_storage[chat_id].city_en

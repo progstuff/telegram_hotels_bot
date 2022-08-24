@@ -18,6 +18,7 @@ class UserHighPriceState(StatesGroup):
 class UserBestDealState(StatesGroup):
     city = State()
     hotels_number = State()
+    hotels_price = State()
     image_choose = State()
     max_images_cnt = State()
 
@@ -34,6 +35,7 @@ class UserData:
         self.__photo_message_id = 0
         self.__text_message_id = 0
         self.__town_keyboard_message_id = 0
+        self.__price_keyboard_message_id = 0
 
     @property
     def city_en(self) -> str:
@@ -115,6 +117,14 @@ class UserData:
     @town_keyboard_message_id.setter
     def town_keyboard_message_id(self, new_id: int):
         self.__town_keyboard_message_id = new_id
+
+    @property
+    def price_keyboard_message_id(self) -> int:
+        return self.__price_keyboard_message_id
+
+    @price_keyboard_message_id.setter
+    def town_keyboard_message_id(self, new_id: int):
+        self.__price_keyboard_message_id = new_id
 
 
 
