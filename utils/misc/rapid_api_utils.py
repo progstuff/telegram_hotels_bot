@@ -6,16 +6,18 @@ from requests import Response
 
 
 def send_data_to_server(url: str, params={}, headers={}) -> Response:
-    try:
-
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-        if response.status_code == requests.codes.ok:
-            return response
-        print('Ошибка', response.status_code)
-        return None
-    except requests.ConnectionError:
-        print('Ошибка соединения')
-        return None
+    while True:
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            if response.status_code == requests.codes.ok:
+                return response
+            print('Ошибка', response.status_code)
+            return None
+        except requests.ConnectionError:
+            print('Ошибка соединения')
+            return None
+        except requests.exceptions.ReadTimeout:
+            print('слишком долгий ответ от сервера')
 
 
 def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
@@ -65,6 +67,11 @@ def load_image(url: str) -> None:
 
 
 def hotel_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
+    """
+    Выбор изображения с нужным размером
+    указывается минимальный, максимальный размер + количество фото, которое нужно вернуть
+    data это список, который приходит от сервера
+    """
     cur_ind = 0
     rez = []
     if data is not None:
@@ -85,6 +92,11 @@ def hotel_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> 
 
 
 def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
+    """
+    тоже что и для hotel_images_by_size
+    но список data содержит элементы с другой структурой, поэтому написана 2-ая похожая функция, решающая ту же задачу
+    """
+
     cur_ind = 0
     rez = []
     if data is not None:
@@ -107,9 +119,9 @@ def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> l
     return rez
 
 
-def get_lowprice_hotels(town: str, max_pages_cnt: int) -> (bool, list):
+def get_filtered_hotels(town: str, max_pages_cnt: int, filter_value: str) -> (bool, list):
     start_date, end_date = get_dates_for_low_high_prices()
-    return get_hotels(town, max_pages_cnt, start_date, end_date, 'PRICE')
+    return get_hotels(town, max_pages_cnt, start_date, end_date, filter_value)
 
 
 def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str) -> (bool, list):

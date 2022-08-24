@@ -8,7 +8,14 @@ class UserLowPriceState(StatesGroup):
     max_images_cnt = State()
 
 
-class UserLowPriceData:
+class UserHighPriceState(StatesGroup):
+    city = State()
+    hotels_number = State()
+    image_choose = State()
+    max_images_cnt = State()
+
+
+class UserData:
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''

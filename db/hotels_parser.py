@@ -1,4 +1,4 @@
-from utils.misc.rapid_api_utils  import get_lowprice_hotels, get_images_links
+from utils.misc.rapid_api_utils  import get_filtered_hotels, get_images_links
 
 hotels_data = {}
 
@@ -67,8 +67,8 @@ def get_images_links_from_server(hotel: dict, max_images_cnt: int) -> int:
     return 0
 
 
-def get_lowprice_data_from_server(chat_id: int, town: str, max_pages_cnt: int) -> int:
-    is_success, hotels = get_lowprice_hotels(town, max_pages_cnt)
+def get_hotel_data_from_server(chat_id: int, town: str, max_pages_cnt: int, filter_value: str) -> int:
+    is_success, hotels = get_filtered_hotels(town, max_pages_cnt, filter_value)
     if is_success:
         hotels_data[chat_id] = []
         for hotel in hotels:
@@ -105,9 +105,9 @@ def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
     return None
 
 
-def get_lowprice_hotel_data(chat_id: int, ind: int) -> str:
+def get_db_hotel_data(chat_id: int, ind: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
-            return data[ind - 1].get_str_view()
+            return data[ind].get_str_view()
     return ''
