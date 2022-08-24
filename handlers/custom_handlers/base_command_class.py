@@ -11,6 +11,7 @@ from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
+from telebot.handler_backends import State
 
 class BaseCommandHandlers:
     """
@@ -57,6 +58,7 @@ class BaseCommandHandlers:
             if towns_ru is not None:
                 if len(towns_ru) == 1:
                     self.set_town(message, self.__command_data, towns_ru[0], towns_en[0])
+                    self.step_after_town_choose(message)
                 else:
                     keyboard = get_town_choose_keyboard(CUR_COMMAND['town_choose_kbrd_key'], towns_ru, towns_en)
                     mes = bot.send_message(message.from_user.id,
@@ -185,8 +187,13 @@ class BaseCommandHandlers:
             bot.send_message(chat_id=message.chat.id,
                              text='Совпадение с одним городом в базе. Поиск будет выполнен для города: {0}'.format(town))
 
+    def step_after_town_choose(self, message: Message):
         bot.set_state(message.from_user.id, self.__state_class.hotels_number, message.chat.id)
-        keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'], [1, 5, 10, 15])
+        self.hotels_cnt_choose_step(message)
+
+    def hotels_cnt_choose_step(self, message: Message):
+        keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
+                                                      [1, 5, 10, 15])
         bot.send_message(message.chat.id, 'Шаг 2 из 3: выберите сколько отелей показывать в выдаче',
                          reply_markup=keyboard)
 
@@ -222,7 +229,7 @@ class BaseCommandHandlers:
 
     def set_handlers(self) -> None:
         self.set_message_handler()
-        self.set_get_city_handler()
+        self.set_get_city_handler() #self.__state_class.hotels_number)
 
     def set_callbacks(self) -> None:
         self.set_hotels_page_callback()

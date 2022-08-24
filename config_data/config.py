@@ -53,8 +53,19 @@ HIGH_PRICE_COMMAND = {'command_name': 'highprice',
                       'town_choose_kbrd_key': 'town_highprice'
                       }
 
-BEST_DEAL_COMMAND = {'command_name': 'bestdeal', 'command_description': '🔎 поиск'}
+BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
+                     'command_description': '🔎 поиск',
+                     'command_welcome_mes': 'Вы выбрали поиск отелей по параметрам',
+                     'image_dialog_key': 'bestdeal_image_choose',
+                     'image_pages_number_key': 'bestdeal_image_pages_number',
+                     'hotels_pages_number_key': 'bestdeal_hotel_pages_number',
+                     'hotels_kbrd_page_key': 'bestdeal_page',
+                     'image_kbrd_page_key': 'bestdeal_image',
+                     'town_choose_kbrd_key': 'town_bestdeal'
+                     }
+
 HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
+
 HELP_MESSAGE = '''
 Что может этот бот?
 
