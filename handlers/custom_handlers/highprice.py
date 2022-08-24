@@ -1,6 +1,6 @@
 from states.user_data_information import UserHighPriceState, UserData
 from config_data.config import HIGH_PRICE_COMMAND
-from handlers.custom_handlers.BaseClassCommand import BaseCommandHandlers
+from handlers.custom_handlers.base_command_class import BaseCommandHandlers
 
 
 class HighpriceCommand(BaseCommandHandlers):
