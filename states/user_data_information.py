@@ -21,12 +21,15 @@ class UserBestDealState(StatesGroup):
     hotels_price = State()
     image_choose = State()
     max_images_cnt = State()
+    distance_to_center = State()
 
 
 class UserData:
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''
+        self.__min_price = -1
+        self.__max_price = -1
         self.__image_choose = False
         self.__cur_image_index = 1
         self.__max_image_index = 2
@@ -123,8 +126,25 @@ class UserData:
         return self.__price_keyboard_message_id
 
     @price_keyboard_message_id.setter
-    def town_keyboard_message_id(self, new_id: int):
+    def price_keyboard_message_id(self, new_id: int):
         self.__price_keyboard_message_id = new_id
+
+    @property
+    def min_price(self) -> int:
+        return self.__min_price
+
+    @min_price.setter
+    def min_price(self, price: float):
+        self.__min_price = price
+
+    @property
+    def max_price(self) -> int:
+        return self.__max_price
+
+    @max_price.setter
+    def max_price(self, price: float):
+        self.__max_price = price
+
 
 
 

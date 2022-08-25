@@ -62,7 +62,8 @@ BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
                      'hotels_kbrd_page_key': 'bestdeal_page',
                      'image_kbrd_page_key': 'bestdeal_image',
                      'town_choose_kbrd_key': 'town_bestdeal',
-                     'hotels_price_key': 'hotels_price_bestdeal'
+                     'hotels_price_key': 'hotels_price_bestdeal',
+                     'distance_choose_key': 'distance_bestdeal'
                      }
 
 HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
