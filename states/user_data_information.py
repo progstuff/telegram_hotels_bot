@@ -1,29 +1,5 @@
 from telebot.handler_backends import State, StatesGroup
 
-
-class UserLowPriceState(StatesGroup):
-    city = State()
-    hotels_number = State()
-    image_choose = State()
-    max_images_cnt = State()
-
-
-class UserHighPriceState(StatesGroup):
-    city = State()
-    hotels_number = State()
-    image_choose = State()
-    max_images_cnt = State()
-
-
-class UserBestDealState(StatesGroup):
-    city = State()
-    hotels_number = State()
-    hotels_price = State()
-    image_choose = State()
-    max_images_cnt = State()
-    distance_to_center = State()
-
-
 class UserData:
     def __init__(self):
         self.__city_en = ''
@@ -39,6 +15,9 @@ class UserData:
         self.__text_message_id = 0
         self.__town_keyboard_message_id = 0
         self.__price_keyboard_message_id = 0
+        self.__distance_keyboard_message_id = 0
+        self.pr = State()
+        self.t = State
 
     @property
     def city_en(self) -> str:
@@ -144,6 +123,40 @@ class UserData:
     @max_price.setter
     def max_price(self, price: float):
         self.__max_price = price
+
+    @property
+    def distance_keyboard_message_id(self) -> int:
+        return self.__distance_keyboard_message_id
+
+    @distance_keyboard_message_id.setter
+    def distance_keyboard_message_id(self, new_id: int):
+        self.__distance_keyboard_message_id = new_id
+
+
+class UserLowPriceState(StatesGroup):
+    city = State()
+    hotels_number = State()
+    image_choose = State()
+    max_images_cnt = State()
+
+
+class UserHighPriceState(StatesGroup):
+    city = State()
+    hotels_number = State()
+    image_choose = State()
+    max_images_cnt = State()
+
+
+class UserBestDealState(StatesGroup):
+    city = State()
+    hotels_number = State()
+    hotels_price = State()
+    image_choose = State()
+    max_images_cnt = State()
+    distance_to_center = State()
+
+
+
 
 
 
