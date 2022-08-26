@@ -15,11 +15,13 @@ class UserData:
         self.__max_page_index = 5
         self.__photo_message_id = 0
         self.__text_message_id = 0
+        self.__image_choose_keyboard_message_id = 0
         self.__town_keyboard_message_id = 0
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
         self.__last_state = State()
+        self.__state_func = None
 
     @property
     def city_en(self) -> str:
@@ -142,12 +144,29 @@ class UserData:
     def last_state(self, new_state: State):
         self.__last_state = new_state
 
+    @property
+    def state_func(self) -> State:
+        return self.__state_func
+
+    @state_func.setter
+    def state_func(self, new_state_func: State):
+        self.__state_func = new_state_func
+
+    @property
+    def image_choose_keyboard_message_id(self) -> int:
+        return self.__image_choose_keyboard_message_id
+
+    @image_choose_keyboard_message_id.setter
+    def image_choose_keyboard_message_id(self, new_id: int):
+        self.__image_choose_keyboard_message_id = new_id
+
 
 class UserLowPriceState(StatesGroup):
     city = State()
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
+    undefined_state = State()
 
 
 class UserHighPriceState(StatesGroup):
@@ -155,6 +174,7 @@ class UserHighPriceState(StatesGroup):
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
+    undefined_state = State()
 
 
 class UserBestDealState(StatesGroup):
@@ -164,6 +184,7 @@ class UserBestDealState(StatesGroup):
     image_choose = State()
     max_images_cnt = State()
     distance_to_center = State()
+    undefined_state = State()
 
 
 
