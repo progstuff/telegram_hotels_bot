@@ -16,8 +16,7 @@ class UserData:
         self.__town_keyboard_message_id = 0
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
-        self.pr = State()
-        self.t = State
+        self.__pages_cnt_keyboard_message_id = 0
 
     @property
     def city_en(self) -> str:

@@ -18,32 +18,32 @@ class BestDealCommand(BaseCommandHandlers):
         self.__distance_vals = [1, 3, 5, -1]
 
     def step_after_town_choose(self, message: Message):
-        self.price_choose_step(message)
+        self.price_choose_step(message, self.state_class)
         self.increase_step()
 
-    def price_choose_step(self, message: Message):
+    def price_choose_step(self, message: Message, state_class):
         a = bot.get_state(message.from_user.id, message.chat.id)
-        bot.set_state(message.from_user.id, self.state_class.hotels_price, message.chat.id)
+        print(a)
+        bot.set_state(message.from_user.id, state_class.hotels_price, message.chat.id)
         a = bot.get_state(message.from_user.id, message.chat.id)
+        print(a)
         keyboard = get_price_choose_keyboard(self.command_config['hotels_price_key'], self.__price_vals)
         mes = bot.send_message(message.chat.id,
                                'Шаг {0} из {1}: выберите диапазон цен'.format(self.cur_step, self.max_steps_cnt),
                                 reply_markup=keyboard)
         self.command_data[mes.chat.id].price_keyboard_message_id = mes.message_id
+        a = bot
+        b = 1
 
     def set_price_choose_handler(self):
         CUR_STATE = self.state_class
 
-        @bot.message_handler(state=self.state_class.hotels_price)
+        @bot.message_handler(state=CUR_STATE.hotels_price)
         def price_choose_handler(message: Message) -> None:
             bot.send_message(message.chat.id, 'Выберите из предложенных диапазонов цен')
             bot.delete_message(chat_id=message.chat.id,
                                message_id=self.command_data[message.chat.id].price_keyboard_message_id)
-
-            a = bot.get_state(message.from_user.id, message.chat.id)
-            bot.set_state(message.from_user.id, CUR_STATE.hotels_price, message.chat.id)
-            a = bot.get_state(message.from_user.id, message.chat.id)
-            self.price_choose_step(message)
+            self.price_choose_step(message, CUR_STATE)
 
     def set_price_choose_callback(self):
         CUR_COMMAND = self.command_config
@@ -51,6 +51,8 @@ class BestDealCommand(BaseCommandHandlers):
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['hotels_price_key'])
         def price_choose_callback(call: CallbackQuery) -> None:
+            a = bot.get_state(call.message.from_user.id, call.message.chat.id)
+            print(a)
             price_range_index = int(call.data.split('#')[1])
             max_price = -1
             if price_range_index == 0:
@@ -64,23 +66,34 @@ class BestDealCommand(BaseCommandHandlers):
             self.command_data[call.message.chat.id].min_price = min_price
             self.command_data[call.message.chat.id].max_price = max_price
             message_text = call.data.split('#')[2]
-            self.bot.delete_message(chat_id=call.message.chat.id,
+            a = bot.get_state(call.message.from_user.id, call.message.chat.id)
+            print(a)
+            bot.delete_message(chat_id=call.message.chat.id,
                                message_id=self.command_data[call.message.chat.id].price_keyboard_message_id)
             bot.send_message(call.message.chat.id, 'вы выбрали диапазон цен: ' + message_text)
+
             a = bot.get_state(call.message.from_user.id, call.message.chat.id)
+            print(a)
             bot.set_state(call.message.from_user.id, CUR_STATE.distance_to_center, call.message.chat.id)
             a = bot.get_state(call.message.from_user.id, call.message.chat.id)
+            print(a)
+
             self.distance_choose_step(call.message)
 
     def distance_choose_step(self, message: Message):
-
+        a = bot.get_state(message.from_user.id, message.chat.id)
+        print(a)
+        bot.set_state(message.from_user.id, self.state_class.distance_to_center, message.chat.id)
+        a = bot.get_state(message.from_user.id, message.chat.id)
+        print(a)
         keyboard = get_distance_choose_keyboard(self.command_config['distance_key'], self.__distance_vals)
         mes = bot.send_message(message.chat.id,
                          'Шаг {0} из {1}: выберите удаленность от центра:'.format(self.cur_step, self.max_steps_cnt),
                          reply_markup=keyboard)
         self.command_data[mes.chat.id].distance_keyboard_message_id = mes.message_id
 
-        a = 1
+        a = bot
+        b = 1
 
     def set_distance_choose_handler(self):
 

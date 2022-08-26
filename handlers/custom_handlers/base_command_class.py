@@ -28,6 +28,7 @@ class BaseCommandHandlers:
         self.__filter_value = 'PRICE'
         self.__cur_step = 1
         self.__max_steps_cnt = 3
+        self.__hotels_pages = [1, 5, 10, 15]
 
     def set_max_steps_cnt(self, max_steps_cnt):
         self.__max_steps_cnt = max_steps_cnt
@@ -104,12 +105,28 @@ class BaseCommandHandlers:
                 bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')
                 bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
 
+    def set_hotels_page_handler(self):
+        CUR_STATE = self.__state_class
+
+        @bot.message_handler(state=CUR_STATE.hotels_number)
+        def get_hotels_page(message: Message) -> None:
+            bot.delete_message(chat_id=message.chat.id,
+                               message_id=self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id)
+            keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
+                                                          self.__hotels_pages)
+            mes = bot.send_message(message.chat.id,
+                             'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
+                                                                                                  self.max_steps_cnt),
+                             reply_markup=keyboard)
+            self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id = mes.message_id
+
     def set_hotels_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['hotels_pages_number_key'])
         def hotels_page_callback(call: CallbackQuery) -> None:
+            self.increase_step()  # был шаг 2
             pages_cnt = int(call.data.split('#')[1])
             self.__command_data[call.message.chat.id].max_page_index = pages_cnt
             keyboard = get_yes_no_keyboard(CUR_COMMAND['image_dialog_key'])
@@ -121,7 +138,6 @@ class BaseCommandHandlers:
                              text='Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step, self.max_steps_cnt),
                              reply_markup=keyboard)
             bot.set_state(call.message.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
-
 
     def set_hotels_show_image_choose_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -197,6 +213,7 @@ class BaseCommandHandlers:
             town_en = call.data.split('#')[1]
             towns_ru, towns_en = get_complete_town_name(town_en)
             self.set_town(call.message, self.__command_data, towns_ru[0], town_en)
+            self.step_after_town_choose(call.message)
 
     def get_info_message(self, data_storage: dict, chat_id: int) -> None:
         pages_cnt = data_storage[chat_id].max_page_index
@@ -232,12 +249,12 @@ class BaseCommandHandlers:
 
     def hotels_cnt_choose_step(self, message: Message):
         keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
-                                                      [1, 5, 10, 15])
-        bot.send_message(message.chat.id,
+                                                      self.__hotels_pages)
+        mes = bot.send_message(message.chat.id,
                          'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
                                                                                           self.max_steps_cnt),
                          reply_markup=keyboard)
-        self.increase_step()  # был шаг 2
+        self.__command_data[mes.chat.id].__pages_cnt_keyboard_message_id = mes.id
 
     def load_data(self, chat_id: int, data_storage: dict) -> None:
         town = data_storage[chat_id].city_en
@@ -272,6 +289,7 @@ class BaseCommandHandlers:
     def set_handlers(self) -> None:
         self.set_message_handler()
         self.set_get_city_handler() #self.__state_class.hotels_number)
+        self.set_hotels_page_handler()
 
     def set_callbacks(self) -> None:
         self.set_hotels_page_callback()
