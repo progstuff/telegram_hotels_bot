@@ -110,15 +110,19 @@ class BaseCommandHandlers:
 
         @bot.message_handler(state=CUR_STATE.hotels_number)
         def get_hotels_page(message: Message) -> None:
-            bot.delete_message(chat_id=message.chat.id,
-                               message_id=self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id)
-            keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
-                                                          self.__hotels_pages)
-            mes = bot.send_message(message.chat.id,
-                             'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
-                                                                                                  self.max_steps_cnt),
-                             reply_markup=keyboard)
-            self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id = mes.message_id
+            a = 1
+            if self.__command_data[message.chat.id].last_state == CUR_STATE.hotels_number:
+                bot.delete_message(chat_id=message.chat.id,
+                                   message_id=self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id)
+                keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
+                                                              self.__hotels_pages)
+                mes = bot.send_message(message.chat.id,
+                                 'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
+                                                                                                      self.max_steps_cnt),
+                                 reply_markup=keyboard)
+                self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id = mes.message_id
+            else:
+                print('change_state')
 
     def set_hotels_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -138,6 +142,7 @@ class BaseCommandHandlers:
                              text='Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step, self.max_steps_cnt),
                              reply_markup=keyboard)
             bot.set_state(call.message.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
+            self.__command_data[call.message.chat.id].last_state = CUR_STATE.image_choose
 
     def set_hotels_show_image_choose_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -245,6 +250,7 @@ class BaseCommandHandlers:
 
     def step_after_town_choose(self, message: Message):
         bot.set_state(message.from_user.id, self.__state_class.hotels_number, message.chat.id)
+        self.__command_data[message.chat.id].last_state = self.__state_class.hotels_number
         self.hotels_cnt_choose_step(message)
 
     def hotels_cnt_choose_step(self, message: Message):
@@ -252,7 +258,7 @@ class BaseCommandHandlers:
                                                       self.__hotels_pages)
         mes = bot.send_message(message.chat.id,
                          'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
-                                                                                          self.max_steps_cnt),
+                                                                                              self.max_steps_cnt),
                          reply_markup=keyboard)
         self.__command_data[mes.chat.id].__pages_cnt_keyboard_message_id = mes.id
 

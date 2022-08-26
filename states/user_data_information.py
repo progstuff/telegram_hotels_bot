@@ -1,6 +1,8 @@
 from telebot.handler_backends import State, StatesGroup
 
+
 class UserData:
+
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''
@@ -17,6 +19,7 @@ class UserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
+        self.__last_state = State()
 
     @property
     def city_en(self) -> str:
@@ -130,6 +133,14 @@ class UserData:
     @distance_keyboard_message_id.setter
     def distance_keyboard_message_id(self, new_id: int):
         self.__distance_keyboard_message_id = new_id
+
+    @property
+    def last_state(self) -> State:
+        return self.__last_state
+
+    @last_state.setter
+    def last_state(self, new_state: State):
+        self.__last_state = new_state
 
 
 class UserLowPriceState(StatesGroup):
