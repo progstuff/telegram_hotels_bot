@@ -9,6 +9,4 @@ class HighpriceCommand(BaseCommandHandlers):
         self.set_filter_value('PRICE_HIGHEST_FIRST')
 
 
-highprice_handlers = HighpriceCommand(HIGH_PRICE_COMMAND, UserHighPriceState, UserData())
-highprice_handlers.set_handlers()
-highprice_handlers.set_callbacks()
+

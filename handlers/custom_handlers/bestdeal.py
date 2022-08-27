@@ -72,22 +72,16 @@ class BestDealCommand(BaseCommandHandlers):
                                message_id=self.command_data[call.message.chat.id].price_keyboard_message_id)
             bot.send_message(call.message.chat.id, 'вы выбрали диапазон цен: ' + message_text)
 
-            a = bot.get_state(call.message.from_user.id, call.message.chat.id)
-            print(a)
-            bot.set_state(call.message.from_user.id, CUR_STATE.distance_to_center, call.message.chat.id)
-            a = bot.get_state(call.message.from_user.id, call.message.chat.id)
-            print(a)
+            self.distance_choose_step(call)
 
-            self.distance_choose_step(call.message)
-
-    def distance_choose_step(self, message: Message):
-        a = bot.get_state(message.from_user.id, message.chat.id)
+    def distance_choose_step(self, call: CallbackQuery):
+        a = bot.get_state(call.from_user.id, call.message.chat.id)
         print(a)
-        bot.set_state(message.from_user.id, self.state_class.distance_to_center, message.chat.id)
-        a = bot.get_state(message.from_user.id, message.chat.id)
+        bot.set_state(call.from_user.id, self.state_class.distance_to_center, call.message.chat.id)
+        a = bot.get_state(call.from_user.id, call.message.chat.id)
         print(a)
         keyboard = get_distance_choose_keyboard(self.command_config['distance_key'], self.__distance_vals)
-        mes = bot.send_message(message.chat.id,
+        mes = bot.send_message(call.message.chat.id,
                          'Шаг {0} из {1}: выберите удаленность от центра:'.format(self.cur_step, self.max_steps_cnt),
                          reply_markup=keyboard)
         self.command_data[mes.chat.id].distance_keyboard_message_id = mes.message_id
@@ -121,10 +115,11 @@ class BestDealCommand(BaseCommandHandlers):
             self.increase_step()
 
     def set_handlers(self) -> None:
-        self.set_message_handler()
-        self.set_get_city_handler()
-        self.set_price_choose_handler()
-        self.set_distance_choose_handler()
+        #self.set_message_handler()
+        self.set_get_city_handler() #self.__state_class.hotels_number)
+        self.set_hotels__cnt_choose_page_handler()
+        #self.set_image_choose_handler()
+        #self.set_image_cnt_choose_handler()
 
     def set_callbacks(self) -> None:
         self.set_town_callback()
@@ -143,7 +138,5 @@ class BestDealCommand(BaseCommandHandlers):
     #    def get_city(message: Message) -> None:
 
 
-bestdeal_handlers = BestDealCommand(BEST_DEAL_COMMAND, UserBestDealState, UserData())
-bestdeal_handlers.set_callbacks()
-bestdeal_handlers.set_handlers()
+
 

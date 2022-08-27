@@ -9,6 +9,3 @@ class LowpriceCommand(BaseCommandHandlers):
         super().__init__(command_config, user_state_class, user_state_data)
 
 
-lowprice_handlers = LowpriceCommand(LOW_PRICE_COMMAND, UserLowPriceState, UserData())
-lowprice_handlers.set_handlers()
-lowprice_handlers.set_callbacks()

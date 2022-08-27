@@ -1,5 +1,6 @@
 from loader import bot
 from telebot.types import Message
+from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND, START_COMMAND
 
 from utils.misc.data_utils import get_complete_town_name
 
@@ -29,9 +30,20 @@ class BaseCommandHandlers:
         self.__cur_step = 1
         self.__max_steps_cnt = 3
         self.__hotels_pages = [1, 5, 10, 15]
-        self.__image_choose_func_handler = None
-        self.__hotels_cnt_choose_func_handler = None
-        self.__image_cnt_choose_func_handler = None
+        self.__images_cnt = [1, 2, 3]
+
+    def set_command_invoke_func(self, command_invoke_func):
+        self.__command_invoke_func = command_invoke_func
+
+    def clear_data(self, message: Message):
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+        user_data = self.__command_data.get(chat_id, None)
+        if user_data is not None:
+            self.__command_data[chat_id].clear_data()
+            bot.delete_state(user_id=user_id, chat_id=chat_id)
+        self.__cur_step = 1
+        self.__command_invoke_func(message)
 
     def set_max_steps_cnt(self, max_steps_cnt):
         self.__max_steps_cnt = max_steps_cnt
@@ -67,6 +79,8 @@ class BaseCommandHandlers:
 
     def command_from_menu(self, message: Message) -> None:
 
+        #self.clear_data(message)
+        self.__cur_step = 1
         bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
 
         bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
@@ -74,23 +88,21 @@ class BaseCommandHandlers:
         self.__command_data[message.chat.id] = self.__user_state_data
 
         bot.set_state(message.from_user.id, self.__state_class.city, message.chat.id)
-        self.__command_data[message.chat.id].last_state = self.__state_class.city
 
-    def set_message_handler(self) -> None:
-        CUR_COMMAND = self.__command_config
-        CUR_STATE = self.__state_class
-        USER_STATE_DATA = self.__user_state_data
+#    def set_message_handler(self) -> None:
+#        CUR_COMMAND = self.__command_config
+#        CUR_STATE = self.__state_class
+#        USER_STATE_DATA = self.__user_state_data
 
-        @bot.message_handler(commands=[CUR_COMMAND['command_name']])
-        def command(message: Message) -> None:
+#        @bot.message_handler(commands=[CUR_COMMAND['command_name']])
+#        def command(message: Message) -> None:
 
-            bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
-            bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
-            self.increase_step()  # был шаг 1
-            self.__command_data[message.chat.id] = USER_STATE_DATA
+#            bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
+#            bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
+#            self.increase_step()  # был шаг 1
+#            self.__command_data[message.chat.id] = USER_STATE_DATA
 
-            bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
-            self.__command_data[message.chat.id].last_state = self.__state_class.city
+#            bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
 
     def set_get_city_handler(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -98,20 +110,12 @@ class BaseCommandHandlers:
 
         @bot.message_handler(state=CUR_STATE.city)
         def get_city(message: Message) -> None:
-            """здесь выполняется проверка состояния, если состояние бота соответствует ожидаемому, то выполнять требуемые действия
-            если не соответствует, то изменить состояние и выполнить действие (вызвать функцию) соответствующую состоянию пользователя
-
-            по какой-то причине состояние не изменяется в callback_handlera'ах т.е. команда bot.set_state не изменяет состояние
-            состояние изменятся только в функциях message_handler
-            поэтому если требуется изменять состояние в callback_handler то запоминается требуемое состояние
-            и в message_handler предыдущего состояния изменяется на требуемое
-            """
-            if self.__command_data[message.chat.id].last_state == CUR_STATE.city:
+            if not self.is_command_message(message):
                 towns_ru, towns_en = get_complete_town_name(message.text)
                 if towns_ru is not None:
                     if len(towns_ru) == 1:
                         self.set_town(message, self.__command_data, towns_ru[0], towns_en[0])
-                        self.step_after_town_choose(message)
+                        self.step_after_town_choose(message.from_user.id, message.chat.id)
                     else:
                         keyboard = get_town_choose_keyboard(CUR_COMMAND['town_choose_kbrd_key'], towns_ru, towns_en)
                         mes = bot.send_message(message.from_user.id,
@@ -122,20 +126,15 @@ class BaseCommandHandlers:
                 else:
                     bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')
                     bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
-                    self.__command_data[message.chat.id].last_state = self.__state_class.city
             else:
-                bot.set_state(message.from_user.id,
-                              self.__command_data[message.chat.id].last_state,
-                              message.chat.id)
-                self.__command_data[message.chat.id].state_func(message)
+                self.clear_data(message)
 
     def set_hotels__cnt_choose_page_handler(self):
         CUR_STATE = self.__state_class
 
         @bot.message_handler(state=CUR_STATE.hotels_number)
         def get_hotels_cnt_choose_page(message: Message) -> None:
-            if self.__command_data[message.chat.id].last_state == CUR_STATE.hotels_number:
-
+            if not self.is_command_message(message):
                 bot.delete_message(chat_id=message.chat.id,
                                    message_id=self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id)
                 keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
@@ -146,12 +145,56 @@ class BaseCommandHandlers:
                                  reply_markup=keyboard)
                 self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id = mes.message_id
             else:
-                bot.set_state(message.from_user.id,
-                              self.__command_data[message.chat.id].last_state,
-                              message.chat.id)
-                self.__command_data[message.chat.id].state_func(message)
+                self.clear_data(message)
 
-        self.__hotels_cnt_choose_func_handler = get_hotels_cnt_choose_page
+    def set_image_choose_handler(self):
+        CUR_STATE = self.__state_class
+        CUR_COMMAND = self.__command_config
+
+        @bot.message_handler(state=CUR_STATE.image_choose)
+        def get_image_choose(message: Message) -> None:
+            if not self.is_command_message(message):
+                keyboard = get_yes_no_keyboard(CUR_COMMAND['image_dialog_key'])
+
+                bot.delete_message(chat_id=message.chat.id,
+                                   message_id=self.__command_data[message.chat.id].image_choose_keyboard_message_id)
+                mes = bot.send_message(chat_id=message.chat.id,
+                                       text='Выберите, пожалуйста из предложенных вариантов. Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step,
+                                                                                            self.max_steps_cnt),
+                                       reply_markup=keyboard)
+                self.__command_data[message.chat.id].image_choose_keyboard_message_id = mes.message_id
+            else:
+                self.clear_data(message)
+
+    def set_image_cnt_choose_handler(self):
+        CUR_STATE = self.__state_class
+        CUR_COMMAND = self.__command_config
+
+        @bot.message_handler(state=CUR_STATE.max_images_cnt)
+        def get_image_cnt_choose(message: Message) -> None:
+            if not self.is_command_message(message):
+                bot.delete_message(chat_id=message.chat.id,
+                                   message_id=self.__command_data[message.chat.id].image_cnt_choose_keyboard_message_id)
+                keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'],
+                                                              self.__images_cnt)
+                mes = bot.send_message(chat_id=message.chat.id,
+                                       text='Пожалуйста, выберите из предложенных вариантов.\n'
+                                            'Шаг {0} из {1}: выберите сколько фото показывать для каждого отеля'
+                                       .format(self.cur_step, self.max_steps_cnt),
+                                       reply_markup=keyboard)
+                self.__command_data[message.chat.id].image_cnt_choose_keyboard_message_id = mes.message_id
+            else:
+                self.clear_data(message)
+
+    def set_data_received_handler(self):
+        CUR_STATE = self.__state_class
+
+        @bot.message_handler(state=CUR_STATE.data_received)
+        def data_receieved_handler(message: Message) -> None:
+            if not self.is_command_message(message):
+                pass
+            else:
+                self.clear_data(message)
 
     def set_hotels_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -166,37 +209,13 @@ class BaseCommandHandlers:
 
             bot.edit_message_text(chat_id=call.message.chat.id,
                                   message_id=call.message.message_id,
-                                  text='Вы выбрали максимальное количество отелей показа за раз: {}'.format(pages_cnt))
-
+                                  text='Вы выбрали максимальное количество отелей показа за раз: {}'
+                                  .format(pages_cnt))
             mes = bot.send_message(chat_id=call.message.chat.id,
                              text='Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step, self.max_steps_cnt),
                              reply_markup=keyboard)
             self.__command_data[call.message.chat.id].image_choose_keyboard_message_id = mes.message_id
-            bot.set_state(call.message.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
-            # здесь запоминаю новое состояние и соответствующую ему функцию
-            self.__command_data[call.message.chat.id].last_state = CUR_STATE.image_choose
-            self.__command_data[call.message.chat.id].state_func = self.__image_choose_func_handler
-
-    def set_image_choose_handler(self):
-        CUR_STATE = self.__state_class
-        CUR_COMMAND = self.__command_config
-
-        @bot.message_handler(state=CUR_STATE.image_choose)
-        def get_image_choose(message: Message) -> None:
-            if self.__command_data[message.chat.id].last_state == CUR_STATE.image_choose:
-                keyboard = get_yes_no_keyboard(CUR_COMMAND['image_dialog_key'])
-
-                bot.delete_message(chat_id=message.chat.id,
-                                   message_id=self.__command_data[message.chat.id].image_choose_keyboard_message_id)
-                mes = bot.send_message(chat_id=message.chat.id,
-                                       text='Выберите, пожалуйста из предложенных вариантов. Шаг {0} из {1}: загружать фото отелей?'.format(self.cur_step,
-                                                                                            self.max_steps_cnt),
-                                       reply_markup=keyboard)
-                self.__command_data[message.chat.id].image_choose_keyboard_message_id = mes.message_id
-            else:
-                print('что-то другое')
-
-        self.__image_choose_func_handler = get_image_choose
+            bot.set_state(call.from_user.id, CUR_STATE.image_choose, call.message.chat.id)
 
     def set_hotels_show_image_choose_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -207,31 +226,24 @@ class BaseCommandHandlers:
             if call.data.split('#')[1] == 'yes':
                 self.__command_data[call.message.chat.id].image_choose = True
 
-                keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'], [1, 2, 3])
-                bot.edit_message_text(chat_id=call.message.chat.id,
-                                      message_id=call.message.message_id,
-                                      text='Шаг {0} из {1}: выберите сколько фото показывать для каждого отеля'.format(self.cur_step,
-                                                                                                                       self.max_steps_cnt),
-                                      reply_markup=keyboard)
-                bot.set_state(call.message.from_user.id, CUR_STATE.max_images_cnt, call.message.chat.id)
-                self.__command_data[call.message.chat.id].last_state = CUR_STATE.max_images_cnt
-
-                self.__command_data[call.message.chat.id].last_state = self.__state_class.max_images_cnt
-                self.__command_data[call.message.chat.id].state_func = self.__image_cnt_choose_func_handler
+                keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'], self.__images_cnt)
+                bot.delete_message(chat_id=call.message.chat.id, message_id=self.__command_data[call.message.chat.id].image_choose_keyboard_message_id)
+                mes = bot.send_message(chat_id=call.message.chat.id,
+                                       text='Шаг {0} из {1}: выберите сколько фото показывать для каждого отеля'
+                                       .format(self.cur_step, self.max_steps_cnt),
+                                       reply_markup=keyboard)
+                self.__command_data[call.message.chat.id].image_cnt_choose_keyboard_message_id = mes.message_id
+                bot.set_state(call.from_user.id, CUR_STATE.max_images_cnt, call.message.chat.id)
             else:
                 self.__command_data[call.message.chat.id].image_choose = False
                 mes = self.get_info_message(self.__command_data, call.message.chat.id)
                 bot.send_message(chat_id=call.message.chat.id, text=mes)
-
-                bot.set_state(call.message.from_user.id, CUR_STATE.undefined_state, call.message.chat.id)
-                self.__command_data[call.message.chat.id].last_state = CUR_STATE.undefined_state
-
+                bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
                 self.load_data(call.message.chat.id, self.__command_data)
-
-            self.increase_step()  # был шаг 3
 
     def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
+        CUR_STATE = self.__state_class
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['image_pages_number_key'])
         def hotels_show_image_cnt(call: CallbackQuery) -> None:
@@ -243,9 +255,10 @@ class BaseCommandHandlers:
                                   text='Вы выбрали показывать по {0} фото для отеля'.format(max_images_cnt))
 
             mes = self.get_info_message(self.__command_data, call.message.chat.id)
+            self.increase_step()  # был шаг 3
             bot.send_message(chat_id=call.message.chat.id, text=mes)
-            bot.delete_state(call.message.from_user.id, call.message.chat.id)
-            self.load_data(call.message.chat.id, self.__command_data)
+            bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
+            self.load_data(call.message.chat.id,  self.__command_data)
 
     def set_hotel_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -280,9 +293,9 @@ class BaseCommandHandlers:
             town_en = call.data.split('#')[1]
             towns_ru, towns_en = get_complete_town_name(town_en)
             self.set_town(call.message, self.__command_data, towns_ru[0], town_en)
-            self.step_after_town_choose(call.message)
+            self.step_after_town_choose(call.from_user.id, call.message.chat.id)
 
-    def get_info_message(self, data_storage: dict, chat_id: int) -> None:
+    def get_info_message(self, data_storage: dict, chat_id: int) -> str:
         pages_cnt = data_storage[chat_id].max_page_index
         city = data_storage[chat_id].city_ru
         mes = "Все данные получены. Выбраны следующие параметры запроса:\n\n"
@@ -310,20 +323,18 @@ class BaseCommandHandlers:
             bot.send_message(chat_id=message.chat.id,
                              text='Совпадение с одним городом в базе. Поиск будет выполнен для города: {0}'.format(town))
 
-    def step_after_town_choose(self, message: Message):
-        bot.set_state(message.from_user.id, self.__state_class.hotels_number, message.chat.id)
-        self.__command_data[message.chat.id].state_func = self.__hotels_cnt_choose_func_handler
-        self.__command_data[message.chat.id].last_state = self.__state_class.hotels_number
-        self.hotels_cnt_choose_step(message)
+    def step_after_town_choose(self, user_id: int, chat_id: int):
+        bot.set_state(user_id, self.__state_class.hotels_number, chat_id)
+        self.hotels_cnt_choose_step(chat_id)
 
-    def hotels_cnt_choose_step(self, message: Message):
+    def hotels_cnt_choose_step(self, chat_id: int):
         keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
                                                       self.__hotels_pages)
-        mes = bot.send_message(message.chat.id,
+        mes = bot.send_message(chat_id,
                          'Шаг {0} из {1}: выберите сколько отелей показывать в выдаче'.format(self.cur_step,
                                                                                               self.max_steps_cnt),
                          reply_markup=keyboard)
-        self.__command_data[mes.chat.id].__pages_cnt_keyboard_message_id = mes.id
+        self.__command_data[chat_id].__pages_cnt_keyboard_message_id = mes.id
 
     def load_data(self, chat_id: int, data_storage: dict) -> None:
         town = data_storage[chat_id].city_en
@@ -355,18 +366,34 @@ class BaseCommandHandlers:
         else:
             bot.send_message(chat_id=chat_id, text="Нет отелей для просмотра")
 
+    def is_command_message(self, message):
+        if (message.text == LOW_PRICE_COMMAND['command_description'] or
+            message.text == ('/' + LOW_PRICE_COMMAND['command_name'])):
+            print('lowprice')
+            return True
+        if (message.text == HIGH_PRICE_COMMAND['command_description'] or
+            message.text == ('/' + HIGH_PRICE_COMMAND['command_name'])):
+            print('highprice')
+            return True
+        if (message.text == BEST_DEAL_COMMAND['command_description'] or
+            message.text == ('/' + BEST_DEAL_COMMAND['command_name'])):
+            print('bestprice')
+            return True
+        return False
+
     def set_handlers(self) -> None:
-        self.set_message_handler()
-        self.set_get_city_handler() #self.__state_class.hotels_number)
+        #self.set_message_handler()
+        self.set_get_city_handler()
         self.set_hotels__cnt_choose_page_handler()
         self.set_image_choose_handler()
         self.set_image_cnt_choose_handler()
+        self.set_data_received_handler()
 
     def set_callbacks(self) -> None:
+        self.set_town_callback()
         self.set_hotels_page_callback()
         self.set_hotels_show_image_choose_callback()
         self.set_hotels_show_image_cnt_callback()
         self.set_hotel_page_callback()
         self.set_hotel_image_callback()
-        self.set_town_callback()
 

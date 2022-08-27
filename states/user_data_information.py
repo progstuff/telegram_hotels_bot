@@ -16,12 +16,30 @@ class UserData:
         self.__photo_message_id = 0
         self.__text_message_id = 0
         self.__image_choose_keyboard_message_id = 0
+        self.__image_cnt_choose_keyboard_message_id = 0
         self.__town_keyboard_message_id = 0
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
-        self.__last_state = State()
-        self.__state_func = None
+
+    def clear_data(self):
+        self.__city_en = ''
+        self.__city_ru = ''
+        self.__min_price = -1
+        self.__max_price = -1
+        self.__image_choose = False
+        self.__cur_image_index = 1
+        self.__max_image_index = 2
+        self.__cur_page_index = 1
+        self.__max_page_index = 5
+        self.__photo_message_id = 0
+        self.__text_message_id = 0
+        self.__image_choose_keyboard_message_id = 0
+        self.__image_cnt_choose_keyboard_message_id = 0
+        self.__town_keyboard_message_id = 0
+        self.__price_keyboard_message_id = 0
+        self.__distance_keyboard_message_id = 0
+        self.__pages_cnt_keyboard_message_id = 0
 
     @property
     def city_en(self) -> str:
@@ -137,22 +155,6 @@ class UserData:
         self.__distance_keyboard_message_id = new_id
 
     @property
-    def last_state(self) -> State:
-        return self.__last_state
-
-    @last_state.setter
-    def last_state(self, new_state: State):
-        self.__last_state = new_state
-
-    @property
-    def state_func(self) -> State:
-        return self.__state_func
-
-    @state_func.setter
-    def state_func(self, new_state_func: State):
-        self.__state_func = new_state_func
-
-    @property
     def image_choose_keyboard_message_id(self) -> int:
         return self.__image_choose_keyboard_message_id
 
@@ -160,13 +162,21 @@ class UserData:
     def image_choose_keyboard_message_id(self, new_id: int):
         self.__image_choose_keyboard_message_id = new_id
 
+    @property
+    def image_cnt_choose_keyboard_message_id(self) -> int:
+        return self.__image_cnt_choose_keyboard_message_id
+
+    @image_cnt_choose_keyboard_message_id.setter
+    def image_cnt_choose_keyboard_message_id(self, new_id: int):
+        self.__image_cnt_choose_keyboard_message_id = new_id
+
 
 class UserLowPriceState(StatesGroup):
     city = State()
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
-    undefined_state = State()
+    data_received = State
 
 
 class UserHighPriceState(StatesGroup):
@@ -174,7 +184,7 @@ class UserHighPriceState(StatesGroup):
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
-    undefined_state = State()
+    data_received = State
 
 
 class UserBestDealState(StatesGroup):
@@ -185,6 +195,7 @@ class UserBestDealState(StatesGroup):
     max_images_cnt = State()
     distance_to_center = State()
     undefined_state = State()
+    data_received = State
 
 
 
