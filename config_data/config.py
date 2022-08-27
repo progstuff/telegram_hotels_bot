@@ -66,7 +66,9 @@ BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
                      'distance_key': 'distance_bestdeal'
                      }
 
-HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
+HISTORY_COMMAND = {'command_name': 'history',
+                   'command_description': '📜 история',
+                   'command_welcome_mes': 'в разработке'}
 
 HELP_MESSAGE = '''
 Что может этот бот?
@@ -76,6 +78,7 @@ HELP_MESSAGE = '''
  🔎 найти отель по параметрам
  📜 показать историю запросов
 '''
+
 DEFAULT_COMMANDS = [START_COMMAND, HELP_COMMAND]
 CUSTOM_COMMANDS = [LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND]
 
