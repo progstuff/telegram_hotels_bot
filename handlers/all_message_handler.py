@@ -1,8 +1,11 @@
 from loader import bot
-from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND
+from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, START_COMMAND, HELP_COMMAND, HISTORY_COMMAND
 from handlers.custom_handlers.lowprice import LowpriceCommand
 from handlers.custom_handlers.highprice import HighpriceCommand
 from handlers.custom_handlers.bestdeal import BestDealCommand
+from handlers.default_handlers.start import bot_start
+from handlers.default_handlers.help import bot_help
+from handlers.default_handlers.history import bot_history
 from states.user_data_information import UserHighPriceState, UserLowPriceState, UserBestDealState, UserData
 from telebot.types import Message
 
@@ -30,6 +33,12 @@ def command_message(message: Message) -> None:
     if message.text == BEST_DEAL_COMMAND['command_description'] or message.text == ('/'+BEST_DEAL_COMMAND['command_name']):
         print('bestprice')
         bestdeal_handlers.command_from_menu(message)
+    if message.text == ('/'+START_COMMAND['command_name']):
+        bot_start(message)
+    if message.text == ('/'+HELP_COMMAND['command_name']):
+        bot_help(message)
+    if message.text == ('/'+HISTORY_COMMAND['command_name']):
+        bot_history(message)
 
 
 lowprice_handlers.set_command_invoke_func(command_message)

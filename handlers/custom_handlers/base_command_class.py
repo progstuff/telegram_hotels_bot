@@ -1,6 +1,6 @@
 from loader import bot
 from telebot.types import Message
-from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND, START_COMMAND
+from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HELP_COMMAND, START_COMMAND, HISTORY_COMMAND
 
 from utils.misc.data_utils import get_complete_town_name
 
@@ -12,7 +12,7 @@ from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
-
+from telebot.types import ReplyKeyboardRemove
 
 class BaseCommandHandlers:
     """
@@ -79,9 +79,9 @@ class BaseCommandHandlers:
 
     def command_from_menu(self, message: Message) -> None:
 
-        #self.clear_data(message)
+        bot.re
         self.__cur_step = 1
-        bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'])
+        bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
 
         bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
         self.increase_step() # был шаг 1
@@ -378,6 +378,12 @@ class BaseCommandHandlers:
         if (message.text == BEST_DEAL_COMMAND['command_description'] or
             message.text == ('/' + BEST_DEAL_COMMAND['command_name'])):
             print('bestprice')
+            return True
+        if message.text == ('/' + START_COMMAND['command_name']):
+            return True
+        if message.text == ('/' + HELP_COMMAND['command_name']):
+            return True
+        if message.text == ('/' + HISTORY_COMMAND['command_name']):
             return True
         return False
 
