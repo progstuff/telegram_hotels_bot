@@ -21,6 +21,8 @@ class UserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
+        self.__data_in = ''
+        self.__data_out = ''
 
     def clear_data(self):
         self.__city_en = ''
@@ -40,6 +42,8 @@ class UserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
+        self.__data_in = ''
+        self.__data_out = ''
 
     @property
     def city_en(self) -> str:
@@ -172,22 +176,29 @@ class UserData:
 
 
 class UserLowPriceState(StatesGroup):
+    date_in = State()
+    date_out = State()
     city = State()
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
-    data_received = State
+    data_received = State()
 
 
 class UserHighPriceState(StatesGroup):
+    date_in = State()
+    date_out = State()
     city = State()
     hotels_number = State()
     image_choose = State()
     max_images_cnt = State()
-    data_received = State
+    data_received = State()
+
 
 
 class UserBestDealState(StatesGroup):
+    date_in = State()
+    date_out = State()
     city = State()
     hotels_number = State()
     hotels_price = State()
@@ -195,7 +206,8 @@ class UserBestDealState(StatesGroup):
     max_images_cnt = State()
     distance_to_center = State()
     undefined_state = State()
-    data_received = State
+    data_received = State()
+
 
 
 

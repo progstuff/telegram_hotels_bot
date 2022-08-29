@@ -13,7 +13,7 @@ class BestDealCommand(BaseCommandHandlers):
     def __init__(self, command_config: str, user_state_class: StatesGroup, user_state_data: UserData):
         super().__init__(command_config, user_state_class, user_state_data)
         self.set_filter_value('PRICE_HIGHEST_FIRST')
-        self.set_max_steps_cnt(5)
+        self.set_max_steps_cnt(7)
         self.__price_vals = [200, 500, 1000]
         self.__distance_vals = [1, 3, 5, -1]
 

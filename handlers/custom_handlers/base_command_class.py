@@ -1,12 +1,12 @@
 from loader import bot
+from datetime import date
+from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from telebot.types import Message
 from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HELP_COMMAND, START_COMMAND, HISTORY_COMMAND
-
-from utils.misc.data_utils import get_complete_town_name
-
+from telebot.handler_backends import State
+from utils.misc.data_utils import get_complete_town_name, translate_date
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
-
 from keyboards.inline.yes_no import get_yes_no_keyboard
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
@@ -29,7 +29,7 @@ class BaseCommandHandlers:
         self.__user_state_data = user_state_data
         self.__filter_value = 'PRICE'
         self.__cur_step = 1
-        self.__max_steps_cnt = 3
+        self.__max_steps_cnt = 5
         self.__hotels_pages = [1, 5, 10, 15]
         self.__images_cnt = [1, 2, 3]
 
@@ -81,12 +81,66 @@ class BaseCommandHandlers:
     def command_from_menu(self, message: Message) -> None:
 
         self.__cur_step = 1
-        bot.send_message(message.from_user.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
+        bot.set_state(message.from_user.id, self.__state_class.date_in, message.chat.id)
+        self.choose_date(message.from_user.id, message.chat.id)
 
-        bot.send_message(message.from_user.id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
-        self.__command_data[message.chat.id] = self.__user_state_data
+    def start_city_dialog(self, user_id: int, chat_id: int):
+        bot.send_message(chat_id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
+        self.__command_data[chat_id] = self.__user_state_data
+        bot.set_state(user_id, self.__state_class.city, chat_id)
 
-        bot.set_state(message.from_user.id, self.__state_class.city, message.chat.id)
+    def choose_date(self, user_id: int, chat_id: int):
+        if bot.get_state(user_id, chat_id) == self.__state_class.date_in.name:
+            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').build()
+            text = 'Шаг {0} из {1}: выберите дату заселения\nвыберите {2}'.format(self.cur_step,
+                                                                            self.max_steps_cnt,
+                                                                            translate_date(LSTEP[step]))
+        else:
+            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').build()
+            text = 'Шаг {0} из {1}: выберите дату выселения\nвыберите {2}'.format(self.cur_step,
+                                                                                   self.max_steps_cnt,
+                                                                                   translate_date(LSTEP[step]))
+        bot.send_message(chat_id,
+                         text,
+                         reply_markup=calendar)
+
+        @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
+        def get_date(call: CallbackQuery):
+            if bot.get_state(call.from_user.id, call.message.chat.id) == self.__state_class.date_in.name:
+                result, key, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').process(call.data)
+                text = 'Шаг {0} из {1}: выберите дату заселения\n выберите {2}'.format(self.cur_step,
+                                                                                       self.max_steps_cnt,
+                                                                                       translate_date(LSTEP[step]))
+            else:
+                result, key, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').process(call.data)
+                text = 'Шаг {0} из {1}: выберите дату выселения\n выберите {2}'.format(self.cur_step,
+                                                                                       self.max_steps_cnt,
+                                                                                       translate_date(LSTEP[step]))
+
+            if not result and key:
+                bot.edit_message_text(text,
+                                      call.message.chat.id,
+                                      call.message.message_id,
+                                      reply_markup=key)
+            elif result:
+                if bot.get_state(call.from_user.id, call.message.chat.id) == self.__state_class.date_in.name:
+                    bot.edit_message_text('Шаг {0} из {1}: Вы выбрали дату заселения {2}'.format(self.cur_step,
+                                                                                                 self.max_steps_cnt,
+                                                                                                 result),
+                                          call.message.chat.id,
+                                          call.message.message_id)
+                    self.increase_step()
+                    bot.set_state(call.from_user.id, self.__state_class.date_out, call.message.chat.id)
+                    self.choose_date(user_id, chat_id)
+                else:
+                    bot.edit_message_text('Шаг {0} из {1}: Вы выбрали дату выселения {2}'.format(self.cur_step,
+                                                                                                 self.max_steps_cnt,
+                                                                                                 result),
+                                          call.message.chat.id,
+                                          call.message.message_id)
+                    self.increase_step()
+                    self.start_city_dialog(user_id, chat_id)
 
     def set_get_city_handler(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -107,12 +161,14 @@ class BaseCommandHandlers:
                             bot.delete_message(chat_id=message.chat.id, message_id=town_kbrd_message_id)
 
                         mes = bot.send_message(message.from_user.id,
-                                         'Нет точного совпадения с имеющимися в базе городами, уточните город из предложенных. Если возможна ошибка ввода, введите город ещё раз',
+                                         'Нет точного совпадения с имеющимися в базе городами, уточните город из предложенных. '
+                                         'Если возможна ошибка ввода, введите город ещё раз',
                                          reply_markup=keyboard)
                         self.__command_data[message.chat.id].town_keyboard_message_id = mes.message_id
 
                 else:
-                    bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. Возможно ввод с ошибкой. Введите город ещё раз')
+                    bot.send_message(chat_id=message.chat.id, text='У меня в базе нет такого города, поиск выполнить не получится. '
+                                                                   'Возможно ввод с ошибкой. Введите город ещё раз')
                     bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
             else:
                 self.clear_data(message)

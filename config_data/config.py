@@ -33,7 +33,7 @@ START_COMMAND = {'command_name': 'start', 'command_description': '🚀 Нача�
 HELP_COMMAND = {'command_name': 'help', 'command_description': '❓ Вывести справку'}
 
 LOW_PRICE_COMMAND = {'command_name': 'lowprice',
-                     'command_description': '🏨 бюджетные',
+                     'command_description': '🏨 бюджетные отели',
                      'command_welcome_mes': 'Вы выбрали показать топ бюджетных отелей в городе',
                      'image_dialog_key': 'lowprice_image_choose',
                      'image_pages_number_key': 'lowprice_image_pages_number',
@@ -43,7 +43,7 @@ LOW_PRICE_COMMAND = {'command_name': 'lowprice',
                      'town_choose_kbrd_key': 'town_lowprice'}
 
 HIGH_PRICE_COMMAND = {'command_name': 'highprice',
-                      'command_description': '🏨 дорогие',
+                      'command_description': '🏨 дорогие отели',
                       'command_welcome_mes': 'Вы выбрали показать топ дорогих отелей в городе',
                       'image_dialog_key': 'highprice_image_choose',
                       'image_pages_number_key': 'highprice_image_pages_number',
@@ -54,7 +54,7 @@ HIGH_PRICE_COMMAND = {'command_name': 'highprice',
                       }
 
 BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
-                     'command_description': '🔎 поиск',
+                     'command_description': '🔎 поиск отелей',
                      'command_welcome_mes': 'Вы выбрали поиск отелей по параметрам',
                      'image_dialog_key': 'bestdeal_image_choose',
                      'image_pages_number_key': 'bestdeal_image_pages_number',
