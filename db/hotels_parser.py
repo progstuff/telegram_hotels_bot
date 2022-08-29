@@ -1,5 +1,5 @@
 from utils.misc.rapid_api_utils  import get_filtered_hotels, get_images_links
-
+from datetime import date
 hotels_data = {}
 
 
@@ -13,7 +13,14 @@ class Hotel:
         self.__price_total = ''
         self.__links = []
         self.__hotel_link = ''
+        self.__total_cost = 0
+        self.__exact_current = 0
+        self.__days_cnt = 0
         self.set_hotel_data(hotel_data)
+
+    def calculate_total_cost(self, days_number: int):
+        self.__days_cnt = days_number
+        self.__total_cost = self.__exact_current * days_number
 
     def set_hotel_data(self, hotel: dict) -> None:
         self.__id = hotel.get('id', None)
@@ -33,9 +40,9 @@ class Hotel:
                 price_current = price.get('current', None)
                 if price_current is not None:
                     self.__price = price_current
-                price_total = price.get('fullyBundledPricePerStay', None)
-                if price_total is not None:
-                    self.__price_total = price_total
+                exact_price = price.get('exactCurrent', None)
+                if exact_price is not None:
+                    self.__exact_current = exact_price
 
     @property
     def links(self) -> str:
@@ -50,11 +57,13 @@ class Hotel:
         return self.__id
 
     def get_str_view(self) -> str:
-        rez = '\n'.join(["отель {}".format(self.__name),
+        rez = '\n'.join(["отель: {}".format(self.__name),
                          "адрес: {}".format(self.__address),
-                         "расстояние до центра {}".format(self.__center_dist),
-                         "цена за ночь {}".format(self.__price),
-                         "ссылка на отель: {}".format(self.__hotel_link)])
+                         "расстояние до центра: {}".format(self.__center_dist),
+                         "цена за ночь: {}".format(self.__price),
+                         "число ночей: {}".format(self.__days_cnt),
+                         "суммарная стоимость: {0}$".format(int(round(self.__total_cost))),
+                         "страница отеля: {}".format(self.__hotel_link)])
         return rez
 
 
@@ -67,8 +76,8 @@ def get_images_links_from_server(hotel: dict, max_images_cnt: int) -> int:
     return 0
 
 
-def get_hotel_data_from_server(chat_id: int, town: str, max_pages_cnt: int, filter_value: str) -> int:
-    is_success, hotels = get_filtered_hotels(town, max_pages_cnt, filter_value)
+def get_hotel_data_from_server(chat_id: int, town: str, start_date: date, end_date: date, max_pages_cnt: int, filter_value: str, min_price=None, max_price=None) -> int:
+    is_success, hotels = get_filtered_hotels(town, start_date, end_date, max_pages_cnt, filter_value, min_price, max_price)
     if is_success:
         hotels_data[chat_id] = []
         for hotel in hotels:
@@ -105,9 +114,10 @@ def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
     return None
 
 
-def get_db_hotel_data(chat_id: int, ind: int) -> str:
+def get_db_hotel_data(chat_id: int, ind: int, days_cnt: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
+            data[ind].calculate_total_cost(days_cnt)
             return data[ind].get_str_view()
     return ''

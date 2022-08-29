@@ -34,7 +34,10 @@ def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool,
         max_image_index = data_storage[chat_id].max_image_index
         photo_keyboard = get_photo_keyboard(cur_image_index, max_image_index, image_kbrd_key)
 
-    hotel_data = get_db_hotel_data(chat_id, page - 1)
+    d1 = data_storage[chat_id].date_in
+    d2 = data_storage[chat_id].date_out
+    days_cnt = (d2 - d1).days
+    hotel_data = get_db_hotel_data(chat_id, page - 1, days_cnt)
     if is_first:
         send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage)
     else:
@@ -61,6 +64,7 @@ def send_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboard
         chat_id,
         text=hotel_data,
         reply_markup=paginator.markup,
+        disable_web_page_preview=True,
         parse_mode='Markdown'
     )
     data_storage[sended_message.chat.id].text_message_id = sended_message.id
@@ -95,6 +99,7 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
             message_id=data_storage[chat_id].text_message_id,
             text=hotel_data,
             reply_markup=paginator.markup,
+            disable_web_page_preview=True,
             parse_mode='Markdown'
         )
     except ApiTelegramException:

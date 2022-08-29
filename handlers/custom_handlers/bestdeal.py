@@ -1,18 +1,20 @@
-from states.user_data_information import UserBestDealState, UserData, StatesGroup
-from config_data.config import BEST_DEAL_COMMAND
+from states.user_data_information import UserData, StatesGroup
 from handlers.custom_handlers.base_command_class import BaseCommandHandlers
 from keyboards.inline.price_choose import get_price_choose_keyboard
 from keyboards.inline.distance_choose import get_distance_choose_keyboard
 from telebot.types import Message
 from telebot.types import CallbackQuery
+from utils.misc.hotel_utils import change_hotel_page
+from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from loader import bot
+
 
 
 class BestDealCommand(BaseCommandHandlers):
 
     def __init__(self, command_config: str, user_state_class: StatesGroup, user_state_data: UserData):
         super().__init__(command_config, user_state_class, user_state_data)
-        self.set_filter_value('PRICE_HIGHEST_FIRST')
+        self.set_filter_value('PRICE')
         self.set_max_steps_cnt(7)
         self.__price_vals = [200, 500, 1000]
         self.__distance_vals = [1, 3, 5, -1]
@@ -50,7 +52,7 @@ class BestDealCommand(BaseCommandHandlers):
             a = bot.get_state(call.from_user.id, call.message.chat.id)
             print(a)
             price_range_index = int(call.data.split('#')[1])
-            max_price = -1
+            max_price = 1000000
             if price_range_index == 0:
                 min_price = 0
                 max_price = self.__price_vals[0]

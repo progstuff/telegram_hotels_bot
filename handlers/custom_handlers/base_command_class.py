@@ -3,7 +3,7 @@ from datetime import date
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from telebot.types import Message
 from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HELP_COMMAND, START_COMMAND, HISTORY_COMMAND
-from telebot.handler_backends import State
+
 from utils.misc.data_utils import get_complete_town_name, translate_date
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
@@ -83,11 +83,11 @@ class BaseCommandHandlers:
         self.__cur_step = 1
         bot.send_message(message.chat.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
         bot.set_state(message.from_user.id, self.__state_class.date_in, message.chat.id)
+        self.__command_data[message.chat.id] = self.__user_state_data
         self.choose_date(message.from_user.id, message.chat.id)
 
     def start_city_dialog(self, user_id: int, chat_id: int):
         bot.send_message(chat_id, 'Шаг {0} из {1}: Введите город'.format(self.cur_step, self.max_steps_cnt))
-        self.__command_data[chat_id] = self.__user_state_data
         bot.set_state(user_id, self.__state_class.city, chat_id)
 
     def choose_date(self, user_id: int, chat_id: int):
@@ -113,7 +113,8 @@ class BaseCommandHandlers:
                                                                                        self.max_steps_cnt,
                                                                                        translate_date(LSTEP[step]))
             else:
-                result, key, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').process(call.data)
+                date_in = self.command_data[call.message.chat.id].date_in
+                result, key, step = DetailedTelegramCalendar(min_date=date_in, locale='ru').process(call.data)
                 text = 'Шаг {0} из {1}: выберите дату выселения\n выберите {2}'.format(self.cur_step,
                                                                                        self.max_steps_cnt,
                                                                                        translate_date(LSTEP[step]))
@@ -127,18 +128,20 @@ class BaseCommandHandlers:
                 if bot.get_state(call.from_user.id, call.message.chat.id) == self.__state_class.date_in.name:
                     bot.edit_message_text('Шаг {0} из {1}: Вы выбрали дату заселения {2}'.format(self.cur_step,
                                                                                                  self.max_steps_cnt,
-                                                                                                 result),
+                                                                                                 result.strftime('%d-%m-%Y')),
                                           call.message.chat.id,
                                           call.message.message_id)
-                    self.increase_step()
                     bot.set_state(call.from_user.id, self.__state_class.date_out, call.message.chat.id)
+                    self.command_data[call.message.chat.id].date_in = result
+                    self.increase_step()
                     self.choose_date(user_id, chat_id)
                 else:
                     bot.edit_message_text('Шаг {0} из {1}: Вы выбрали дату выселения {2}'.format(self.cur_step,
                                                                                                  self.max_steps_cnt,
-                                                                                                 result),
+                                                                                                 result.strftime('%d-%m-%Y')),
                                           call.message.chat.id,
                                           call.message.message_id)
+                    self.command_data[call.message.chat.id].date_out = result
                     self.increase_step()
                     self.start_city_dialog(user_id, chat_id)
 
@@ -395,7 +398,14 @@ class BaseCommandHandlers:
 
         town = data_storage[chat_id].city_en
         #####################
-        hotels_cnt = get_hotel_data_from_server(chat_id, town, data_storage[chat_id].max_page_index, self.__filter_value)
+        hotels_cnt = get_hotel_data_from_server(chat_id,
+                                                town,
+                                                data_storage[chat_id].date_in,
+                                                data_storage[chat_id].date_out,
+                                                data_storage[chat_id].max_page_index,
+                                                self.__filter_value,
+                                                data_storage[chat_id].min_price,
+                                                data_storage[chat_id].max_price)
         #####################
         if hotels_cnt > 0:
             if hotels_cnt < data_storage[chat_id].max_page_index:

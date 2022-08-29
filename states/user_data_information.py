@@ -1,13 +1,12 @@
 from telebot.handler_backends import State, StatesGroup
-
-
+from datetime import date, datetime, timedelta
 class UserData:
 
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''
-        self.__min_price = -1
-        self.__max_price = -1
+        self.__min_price = None
+        self.__max_price = None
         self.__image_choose = False
         self.__cur_image_index = 1
         self.__max_image_index = 2
@@ -21,14 +20,18 @@ class UserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
-        self.__data_in = ''
-        self.__data_out = ''
+
+        cur_date = date.today()
+        start_day = cur_date + timedelta(days=1)
+        end_day = start_day + timedelta(days=1)
+        self.__date_in = start_day
+        self.__date_out = end_day
 
     def clear_data(self):
         self.__city_en = ''
         self.__city_ru = ''
-        self.__min_price = -1
-        self.__max_price = -1
+        self.__min_price = None
+        self.__max_price = None
         self.__image_choose = False
         self.__cur_image_index = 1
         self.__max_image_index = 2
@@ -42,8 +45,8 @@ class UserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
-        self.__data_in = ''
-        self.__data_out = ''
+        self.__date_in = ''
+        self.__date_out = ''
 
     @property
     def city_en(self) -> str:
@@ -173,6 +176,22 @@ class UserData:
     @image_cnt_choose_keyboard_message_id.setter
     def image_cnt_choose_keyboard_message_id(self, new_id: int):
         self.__image_cnt_choose_keyboard_message_id = new_id
+
+    @property
+    def date_in(self) -> date:
+        return self.__date_in
+
+    @date_in.setter
+    def date_in(self, date_obj: date):
+        self.__date_in = date_obj
+
+    @property
+    def date_out(self) -> date:
+        return self.__date_out
+
+    @date_out.setter
+    def date_out(self, date_obj: date):
+        self.__date_out = date_obj
 
 
 class UserLowPriceState(StatesGroup):
