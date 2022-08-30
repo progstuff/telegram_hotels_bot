@@ -13,7 +13,7 @@ from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_s
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
 from telebot.types import ReplyKeyboardRemove
-
+from database.command_history_data import CommandDataDb, UserDataDb, HotelDb
 
 class BaseCommandHandlers:
     """
@@ -82,6 +82,7 @@ class BaseCommandHandlers:
 
         self.__cur_step = 1
         bot.send_message(message.chat.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
+
         bot.set_state(message.from_user.id, self.__state_class.date_in, message.chat.id)
         self.__command_data[message.chat.id] = self.__user_state_data
         self.choose_date(message.from_user.id, message.chat.id)
@@ -293,7 +294,7 @@ class BaseCommandHandlers:
                                  text='Шаг {0} из {1}: Вы выбрали не показывать фото отелей'
                                  .format(self.cur_step, self.max_steps_cnt))
                 bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
-                self.load_data(call.message.chat.id, self.__command_data)
+                self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
 
     def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -311,7 +312,7 @@ class BaseCommandHandlers:
             self.increase_step()  # был шаг 3
 
             bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
-            self.load_data(call.message.chat.id,  self.__command_data)
+            self.load_data(call.from_user.id, call.message.chat.id,  self.__command_data)
 
     def set_hotel_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -392,7 +393,7 @@ class BaseCommandHandlers:
                                reply_markup=keyboard)
         self.__command_data[chat_id].__pages_cnt_keyboard_message_id = mes.id
 
-    def load_data(self, chat_id: int, data_storage: dict) -> None:
+    def load_data(self, user_id: int, chat_id: int, data_storage: dict) -> None:
         text = self.get_info_message(data_storage, chat_id)
         mes = bot.send_message(chat_id=chat_id, text=text)
 
@@ -430,6 +431,7 @@ class BaseCommandHandlers:
                               data_storage,
                               self.__command_config['hotels_kbrd_page_key'],
                               self.__command_config['image_kbrd_page_key'])
+            self.add_command_data_to_db(user_id, chat_id, hotels_cnt, data_storage)
         else:
             text = text + '\nНет отелей для просмотра'
             bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
@@ -454,6 +456,28 @@ class BaseCommandHandlers:
         if message.text == ('/' + HISTORY_COMMAND['command_name']):
             return True
         return False
+
+    def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage):
+        user = UserDataDb.create(user_id=user_id,
+                                 date_in=data_storage[chat_id].date_in,
+                                 date_out=data_storage[chat_id].date_out,
+                                 town_ru=data_storage[chat_id].city_ru,
+                                 town_en=data_storage[chat_id].city_en)
+        com_data = CommandDataDb.create(user=user, command_name=self.__command_config['command_name'],
+                                        invoke_time=date.today())
+
+        for hotel_ind in range(1, hotels_cnt + 1):
+            hotel = get_hotel(chat_id, hotel_ind)
+            HotelDb.create(
+                command_data=com_data,
+                name=hotel.name,
+                address=hotel.address,
+                distance_to_center=hotel.center_dist,
+                one_day_price=hotel.price,
+                days_cnt=hotel.days_cnt,
+                total_price=hotel.total_cost,
+                url=''
+            )
 
     def set_handlers(self) -> None:
         self.set_get_city_handler()

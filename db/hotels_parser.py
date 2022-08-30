@@ -4,7 +4,7 @@ hotels_data = {}
 
 
 class Hotel:
-    def __init__(self, hotel_data: dict):
+    def __init__(self, hotel_data: dict, date_in: date, date_out: date):
         self.__id = 0
         self.__name = ''
         self.__address = ''
@@ -17,6 +17,7 @@ class Hotel:
         self.__exact_current = 0
         self.__days_cnt = 0
         self.set_hotel_data(hotel_data)
+        self.calculate_total_cost((date_out - date_in).days)
 
     def calculate_total_cost(self, days_number: int):
         self.__days_cnt = days_number
@@ -43,6 +44,30 @@ class Hotel:
                 exact_price = price.get('exactCurrent', None)
                 if exact_price is not None:
                     self.__exact_current = exact_price
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    @property
+    def address(self) -> str:
+        return self.__address
+
+    @property
+    def center_dist(self) -> str:
+        return self.__center_dist
+
+    @property
+    def price(self) -> str:
+        return self.__price
+
+    @property
+    def total_cost(self) -> float:
+        return self.__total_cost
+
+    @property
+    def days_cnt(self) -> int:
+        return self.__days_cnt
 
     @property
     def links(self) -> str:
@@ -81,7 +106,8 @@ def get_hotel_data_from_server(chat_id: int, town: str, start_date: date, end_da
     if is_success:
         hotels_data[chat_id] = []
         for hotel in hotels:
-            hotels_data[chat_id].append(Hotel(hotel))
+            hotels_data[chat_id].append(Hotel(hotel, start_date, end_date))
+
         print(hotels)
         return len(hotels)
     print('отели не получены')
@@ -96,7 +122,7 @@ def get_hotel_id(chat_id: int, ind: int) -> int:
     return None
 
 
-def get_hotel(chat_id: int, ind: int) -> dict:
+def get_hotel(chat_id: int, ind: int) -> Hotel:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
