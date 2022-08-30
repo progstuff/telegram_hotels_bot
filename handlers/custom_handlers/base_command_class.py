@@ -13,6 +13,7 @@ from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_s
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
 from telebot.types import ReplyKeyboardRemove
+from keyboards.reply.show_menu import get_main_menu_keyboard
 
 
 class BaseCommandHandlers:
@@ -298,6 +299,10 @@ class BaseCommandHandlers:
                 bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
                 self.load_data(call.message.chat.id, self.__command_data)
 
+                main_menu_keyboard = get_main_menu_keyboard()
+                bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
+
+
     def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
@@ -315,6 +320,9 @@ class BaseCommandHandlers:
 
             bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
             self.load_data(call.message.chat.id,  self.__command_data)
+
+            main_menu_keyboard = get_main_menu_keyboard()
+            bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
 
     def set_hotel_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
