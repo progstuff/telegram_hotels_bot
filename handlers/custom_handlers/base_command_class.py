@@ -38,14 +38,15 @@ class BaseCommandHandlers:
     def set_command_invoke_func(self, command_invoke_func):
         self.__command_invoke_func = command_invoke_func
 
-    def clear_data(self, message: Message):
+    def clear_data(self, message: Message, is_need_reset):
         chat_id = message.chat.id
         user_id = message.from_user.id
         user_data = self.__command_data.get(chat_id, None)
-        if user_data is not None:
-            #self.__command_data[chat_id].clear_data()
-            bot.delete_state(user_id=user_id, chat_id=chat_id)
-        self.__cur_step = 1
+        if is_need_reset:
+            if user_data is not None:
+                self.__command_data[chat_id].clear_data()
+                bot.delete_state(user_id=user_id, chat_id=chat_id)
+            self.__cur_step = 1
         self.__command_invoke_func(message)
 
     def set_max_steps_cnt(self, max_steps_cnt):
@@ -156,7 +157,8 @@ class BaseCommandHandlers:
 
         @bot.message_handler(state=CUR_STATE.city)
         def get_city(message: Message) -> None:
-            if not self.is_command_message(message):
+            is_command, is_need_reset = self.is_command_message(message)
+            if not is_command:
                 towns_ru, towns_en = get_complete_town_name(message.text)
                 if towns_ru is not None:
                     if len(towns_ru) == 1:
@@ -179,14 +181,15 @@ class BaseCommandHandlers:
                                                                    'Возможно ввод с ошибкой. Введите город ещё раз')
                     bot.set_state(message.from_user.id, CUR_STATE.city, message.chat.id)
             else:
-                self.clear_data(message)
+                self.clear_data(message, is_need_reset)
 
     def set_hotels__cnt_choose_page_handler(self):
         CUR_STATE = self.__state_class
 
         @bot.message_handler(state=CUR_STATE.hotels_number)
         def get_hotels_cnt_choose_page(message: Message) -> None:
-            if not self.is_command_message(message):
+            is_command, is_need_reset = self.is_command_message(message)
+            if not is_command:
                 bot.delete_message(chat_id=message.chat.id,
                                    message_id=self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id)
                 keyboard = get_hotels_numbers_choose_keyboard(self.__command_config['hotels_pages_number_key'],
@@ -198,7 +201,7 @@ class BaseCommandHandlers:
                                  reply_markup=keyboard)
                 self.__command_data[message.chat.id].__pages_cnt_keyboard_message_id = mes.message_id
             else:
-                self.clear_data(message)
+                self.clear_data(message, is_need_reset)
 
     def set_image_choose_handler(self):
         CUR_STATE = self.__state_class
@@ -206,7 +209,8 @@ class BaseCommandHandlers:
 
         @bot.message_handler(state=CUR_STATE.image_choose)
         def get_image_choose(message: Message) -> None:
-            if not self.is_command_message(message):
+            is_command, is_need_reset = self.is_command_message(message)
+            if not is_command:
                 keyboard = get_yes_no_keyboard(CUR_COMMAND['image_dialog_key'])
 
                 bot.delete_message(chat_id=message.chat.id,
@@ -218,7 +222,7 @@ class BaseCommandHandlers:
                                        reply_markup=keyboard)
                 self.__command_data[message.chat.id].image_choose_keyboard_message_id = mes.message_id
             else:
-                self.clear_data(message)
+                self.clear_data(message, is_need_reset)
 
     def set_image_cnt_choose_handler(self):
         CUR_STATE = self.__state_class
@@ -226,7 +230,8 @@ class BaseCommandHandlers:
 
         @bot.message_handler(state=CUR_STATE.max_images_cnt)
         def get_image_cnt_choose(message: Message) -> None:
-            if not self.is_command_message(message):
+            is_command, is_need_reset = self.is_command_message(message)
+            if not is_command:
                 bot.delete_message(chat_id=message.chat.id,
                                    message_id=self.__command_data[message.chat.id].image_cnt_choose_keyboard_message_id)
                 keyboard = get_hotels_numbers_choose_keyboard(CUR_COMMAND['image_pages_number_key'],
@@ -238,17 +243,18 @@ class BaseCommandHandlers:
                                        reply_markup=keyboard)
                 self.__command_data[message.chat.id].image_cnt_choose_keyboard_message_id = mes.message_id
             else:
-                self.clear_data(message)
+                self.clear_data(message, is_need_reset)
 
     def set_data_received_handler(self):
         CUR_STATE = self.__state_class
 
         @bot.message_handler(state=CUR_STATE.data_received)
         def data_receieved_handler(message: Message) -> None:
-            if not self.is_command_message(message):
+            is_command, is_need_reset = self.is_command_message(message)
+            if not is_command:
                 pass
             else:
-                self.clear_data(message)
+                self.clear_data(message, is_need_reset)
 
     def set_hotels_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -452,21 +458,21 @@ class BaseCommandHandlers:
     def is_command_message(self, message):
         if (message.text == LOW_PRICE_COMMAND['command_description'] or
             message.text == ('/' + LOW_PRICE_COMMAND['command_name'])):
-            return True
+            return True, True
         if (message.text == HIGH_PRICE_COMMAND['command_description'] or
             message.text == ('/' + HIGH_PRICE_COMMAND['command_name'])):
-            return True
+            return True, True
         if (message.text == BEST_DEAL_COMMAND['command_description'] or
             message.text == ('/' + BEST_DEAL_COMMAND['command_name'])):
-            return True
+            return True, True
         if message.text == ('/' + START_COMMAND['command_name']):
-            return True
+            return True, True
         if message.text == ('/' + HELP_COMMAND['command_name']):
-            return True
+            return True, False
         if (message.text == HISTORY_COMMAND['command_description'] or
             message.text == ('/' + HISTORY_COMMAND['command_name'])):
-            return True
-        return False
+            return True, False
+        return False, False
 
     def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage):
         user = UserDataDb.create(user_id=user_id,
