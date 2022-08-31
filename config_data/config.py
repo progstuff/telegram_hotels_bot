@@ -68,7 +68,8 @@ BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
 
 HISTORY_COMMAND = {'command_name': 'history',
                    'command_description': '📜 история',
-                   'command_welcome_mes': 'в разработке'}
+                   'command_welcome_mes': 'в разработке',
+                   'hotels_pages_number_key': 'history_hotel_pages_number',}
 
 HELP_MESSAGE = '''
 Что может этот бот?

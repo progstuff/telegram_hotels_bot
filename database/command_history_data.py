@@ -39,8 +39,9 @@ class CommandDataDb(Model):
                              month_str,
                              str(self.invoke_time.year)])
 
-        data = ' '.join([self.command_name, date_str])
-        return data
+        data = ' '.join([' '*20, self.command_name, date_str])
+        result = '\n'.join(['='*35, data, '='*35])
+        return result
 
     class Meta:
         database = db
@@ -59,13 +60,13 @@ class HotelDb(Model):
     url = CharField()
 
     def get_str_view(self) -> str:
-        rez = '\n'.join(["    отель: {}".format(self.name),
-                         "    адрес: {}".format(self.address),
-                         "    расстояние до центра: {}".format(self.distance_to_center),
-                         "    цена за ночь: {}".format(self.one_day_price),
-                         "    число ночей: {}".format(self.days_cnt),
-                         "    суммарная стоимость: {0}$".format(int(round(self.total_price))),
-                         "    страница отеля: {}".format(self.url),])
+        rez = '\n'.join(["отель: {}".format(self.name),
+                         "адрес: {}".format(self.address),
+                         "расстояние до центра: {}".format(self.distance_to_center),
+                         "цена за ночь: {}".format(self.one_day_price),
+                         "число ночей: {}".format(self.days_cnt),
+                         "суммарная стоимость: {0}$".format(int(round(self.total_price))),
+                         "страница отеля: {}".format(self.url)])
         return rez
 
 

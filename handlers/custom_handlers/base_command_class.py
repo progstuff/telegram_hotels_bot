@@ -480,7 +480,8 @@ class BaseCommandHandlers:
                                  date_out=data_storage[chat_id].date_out,
                                  town_ru=data_storage[chat_id].city_ru,
                                  town_en=data_storage[chat_id].city_en)
-        com_data = CommandDataDb.create(user=user, command_name=self.__command_config['command_name'],
+        com_data = CommandDataDb.create(user=user,
+                                        command_name=self.__command_config['command_name'],
                                         invoke_time=date.today())
 
         for hotel_ind in range(1, hotels_cnt + 1):

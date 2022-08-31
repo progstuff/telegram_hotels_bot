@@ -20,6 +20,17 @@ def hotels_paginator(page: int, pages_cnt: int, data_prefix: str) -> InlineKeybo
     return paginator
 
 
+def history_hotels_paginator(page: int, pages_cnt: int, data_prefix: str) -> InlineKeyboardPaginator:
+    paginator = InlineKeyboardPaginator(
+        pages_cnt,
+        current_page=page,
+        data_pattern=data_prefix + '#{page}'
+    )
+    paginator.add_after(InlineKeyboardButton('Предыдущие записи', callback_data=data_prefix + '#backward'),
+                        InlineKeyboardButton('Следующие записи', callback_data=data_prefix + '#forward'))
+    return paginator
+
+
 def get_photo_keyboard(photo_number: int, photos_numbers: int, data_prefix: str) -> InlineKeyboardMarkup:
     if photos_numbers > 1:
         keyboard = InlineKeyboardMarkup()

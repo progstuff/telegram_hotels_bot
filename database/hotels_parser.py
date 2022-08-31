@@ -47,7 +47,7 @@ class Hotel:
 
     @property
     def hotel_link(self) -> str:
-        return self.hotel_link
+        return self.__hotel_link
 
     @property
     def name(self) -> str:
