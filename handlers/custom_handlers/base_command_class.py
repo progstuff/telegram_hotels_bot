@@ -9,7 +9,7 @@ from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
 from keyboards.inline.yes_no import get_yes_no_keyboard
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
-from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
+from database.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
 from telebot.types import ReplyKeyboardRemove
