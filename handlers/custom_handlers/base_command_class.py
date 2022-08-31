@@ -43,7 +43,7 @@ class BaseCommandHandlers:
         user_id = message.from_user.id
         user_data = self.__command_data.get(chat_id, None)
         if user_data is not None:
-            self.__command_data[chat_id].clear_data()
+            #self.__command_data[chat_id].clear_data()
             bot.delete_state(user_id=user_id, chat_id=chat_id)
         self.__cur_step = 1
         self.__command_invoke_func(message)
@@ -461,7 +461,8 @@ class BaseCommandHandlers:
             return True
         if message.text == ('/' + HELP_COMMAND['command_name']):
             return True
-        if message.text == ('/' + HISTORY_COMMAND['command_name']):
+        if (message.text == HISTORY_COMMAND['command_description'] or
+            message.text == ('/' + HISTORY_COMMAND['command_name'])):
             return True
         return False
 
@@ -471,7 +472,7 @@ class BaseCommandHandlers:
         self.set_image_choose_handler()
         self.set_image_cnt_choose_handler()
         self.set_data_received_handler()
-        self.set_data_received_handler()
+        #self.set_data_received_handler()
 
     def set_callbacks(self) -> None:
         self.set_calendar_callback()
