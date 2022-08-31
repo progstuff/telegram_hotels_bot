@@ -493,7 +493,7 @@ class BaseCommandHandlers:
                 one_day_price=hotel.price,
                 days_cnt=hotel.days_cnt,
                 total_price=hotel.total_cost,
-                url=''
+                url=hotel.hotel_link
             )
 
     def set_handlers(self) -> None:

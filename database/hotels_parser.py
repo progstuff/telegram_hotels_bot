@@ -46,6 +46,10 @@ class Hotel:
                     self.__exact_current = exact_price
 
     @property
+    def hotel_link(self) -> str:
+        return self.hotel_link
+
+    @property
     def name(self) -> str:
         return self.__name
 
@@ -138,10 +142,9 @@ def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
     return None
 
 
-def get_db_hotel_data(chat_id: int, ind: int, days_cnt: int) -> str:
+def get_db_hotel_data(chat_id: int, ind: int) -> str:
     data = hotels_data.get(chat_id, None)
     if data is not None:
         if ind <= len(data):
-            data[ind].calculate_total_cost(days_cnt)
             return data[ind].get_str_view()
     return ''

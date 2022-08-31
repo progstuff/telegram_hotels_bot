@@ -34,10 +34,7 @@ def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool,
         max_image_index = data_storage[chat_id].max_image_index
         photo_keyboard = get_photo_keyboard(cur_image_index, max_image_index, image_kbrd_key)
 
-    d1 = data_storage[chat_id].date_in
-    d2 = data_storage[chat_id].date_out
-    days_cnt = (d2 - d1).days
-    hotel_data = get_db_hotel_data(chat_id, page - 1, days_cnt)
+    hotel_data = get_db_hotel_data(chat_id, page - 1)
     if is_first:
         send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage)
     else:
