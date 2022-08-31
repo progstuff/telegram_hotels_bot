@@ -34,7 +34,7 @@ def command_message(message: Message) -> None:
         bot_start(message)
     if message.text == ('/'+HELP_COMMAND['command_name']):
         bot_help(message)
-    if message.text == ('/'+HISTORY_COMMAND['command_name']):
+    if message.text == HISTORY_COMMAND['command_description'] or message.text == ('/'+HISTORY_COMMAND['command_name']):
         bot_history(message)
 
 
