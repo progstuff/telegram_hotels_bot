@@ -4,10 +4,7 @@ from keyboards.inline.price_choose import get_price_choose_keyboard
 from keyboards.inline.distance_choose import get_distance_choose_keyboard
 from telebot.types import Message
 from telebot.types import CallbackQuery
-from utils.misc.hotel_utils import change_hotel_page
-from db.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
 from loader import bot
-
 
 
 class BestDealCommand(BaseCommandHandlers):
@@ -18,6 +15,7 @@ class BestDealCommand(BaseCommandHandlers):
         self.set_max_steps_cnt(7)
         self.__price_vals = [200, 500, 1000]
         self.__distance_vals = [1, 3, 5, -1]
+        self.calendar_id = "bestdeal"
 
     def step_after_town_choose(self, user_id: int, chat_id: int):
         self.price_choose_step(user_id, chat_id, False)
@@ -49,8 +47,6 @@ class BestDealCommand(BaseCommandHandlers):
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['hotels_price_key'])
         def price_choose_callback(call: CallbackQuery) -> None:
-            a = bot.get_state(call.from_user.id, call.message.chat.id)
-            print(a)
             price_range_index = int(call.data.split('#')[1])
             max_price = 1000000
             if price_range_index == 0:
@@ -123,6 +119,7 @@ class BestDealCommand(BaseCommandHandlers):
         self.set_data_received_handler()
 
     def set_callbacks(self) -> None:
+        self.set_calendar_callback()
         self.set_town_callback()
         self.set_price_choose_callback()
         self.set_distance_choose_callback()

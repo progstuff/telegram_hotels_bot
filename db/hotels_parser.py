@@ -106,9 +106,7 @@ def get_hotel_data_from_server(chat_id: int, town: str, start_date: date, end_da
     if is_success:
         hotels_data[chat_id] = []
         for hotel in hotels:
-            hotels_data[chat_id].append(Hotel(hotel, start_date, end_date))
-
-        print(hotels)
+            hotels_data[chat_id].append(Hotel(hotel))
         return len(hotels)
     print('отели не получены')
     return 0

@@ -14,6 +14,7 @@ from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
 from telebot.types import ReplyKeyboardRemove
 from database.command_history_data import CommandDataDb, UserDataDb, HotelDb
+from keyboards.reply.show_menu import get_main_menu_keyboard
 
 class BaseCommandHandlers:
     """
@@ -32,6 +33,7 @@ class BaseCommandHandlers:
         self.__max_steps_cnt = 5
         self.__hotels_pages = [1, 5, 10, 15]
         self.__images_cnt = [1, 2, 3]
+        self.calendar_id = "zero"
 
     def set_command_invoke_func(self, command_invoke_func):
         self.__command_invoke_func = command_invoke_func
@@ -93,12 +95,12 @@ class BaseCommandHandlers:
 
     def choose_date(self, user_id: int, chat_id: int):
         if bot.get_state(user_id, chat_id) == self.__state_class.date_in.name:
-            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').build()
+            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru', calendar_id=self.calendar_id).build()
             text = 'Шаг {0} из {1}: выберите дату заселения\nвыберите {2}'.format(self.cur_step,
                                                                             self.max_steps_cnt,
                                                                             translate_date(LSTEP[step]))
         else:
-            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').build()
+            calendar, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru', calendar_id=self.calendar_id).build()
             text = 'Шаг {0} из {1}: выберите дату выселения\nвыберите {2}'.format(self.cur_step,
                                                                                    self.max_steps_cnt,
                                                                                    translate_date(LSTEP[step]))
@@ -106,16 +108,18 @@ class BaseCommandHandlers:
                          text,
                          reply_markup=calendar)
 
-        @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
+    def set_calendar_callback(self):
+        @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=self.calendar_id))
         def get_date(call: CallbackQuery):
+
             if bot.get_state(call.from_user.id, call.message.chat.id) == self.__state_class.date_in.name:
-                result, key, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru').process(call.data)
+                result, key, step = DetailedTelegramCalendar(min_date=date.today(), locale='ru', calendar_id=self.calendar_id).process(call.data)
                 text = 'Шаг {0} из {1}: выберите дату заселения\n выберите {2}'.format(self.cur_step,
                                                                                        self.max_steps_cnt,
                                                                                        translate_date(LSTEP[step]))
             else:
                 date_in = self.command_data[call.message.chat.id].date_in
-                result, key, step = DetailedTelegramCalendar(min_date=date_in, locale='ru').process(call.data)
+                result, key, step = DetailedTelegramCalendar(min_date=date_in, locale='ru', calendar_id=self.calendar_id).process(call.data)
                 text = 'Шаг {0} из {1}: выберите дату выселения\n выберите {2}'.format(self.cur_step,
                                                                                        self.max_steps_cnt,
                                                                                        translate_date(LSTEP[step]))
@@ -135,7 +139,7 @@ class BaseCommandHandlers:
                     bot.set_state(call.from_user.id, self.__state_class.date_out, call.message.chat.id)
                     self.command_data[call.message.chat.id].date_in = result
                     self.increase_step()
-                    self.choose_date(user_id, chat_id)
+                    self.choose_date(call.from_user.id, call.message.chat.id)
                 else:
                     bot.edit_message_text('Шаг {0} из {1}: Вы выбрали дату выселения {2}'.format(self.cur_step,
                                                                                                  self.max_steps_cnt,
@@ -144,7 +148,7 @@ class BaseCommandHandlers:
                                           call.message.message_id)
                     self.command_data[call.message.chat.id].date_out = result
                     self.increase_step()
-                    self.start_city_dialog(user_id, chat_id)
+                    self.start_city_dialog(call.from_user.id, call.message.chat.id)
 
     def set_get_city_handler(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -296,6 +300,10 @@ class BaseCommandHandlers:
                 bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
                 self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
 
+                main_menu_keyboard = get_main_menu_keyboard()
+                bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
+
+
     def set_hotels_show_image_cnt_callback(self) -> None:
         CUR_COMMAND = self.__command_config
         CUR_STATE = self.__state_class
@@ -313,6 +321,9 @@ class BaseCommandHandlers:
 
             bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
             self.load_data(call.from_user.id, call.message.chat.id,  self.__command_data)
+
+            main_menu_keyboard = get_main_menu_keyboard()
+            bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
 
     def set_hotel_page_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -353,6 +364,8 @@ class BaseCommandHandlers:
         pages_cnt = data_storage[chat_id].max_page_index
         city = data_storage[chat_id].city_ru
         mes = "Все данные получены. Выбраны следующие параметры запроса:\n\n"
+        mes += "  дата заселения: {}\n".format(data_storage[chat_id].date_in.strftime("%d-%m-%Y"))
+        mes += "  дата выселения: {}\n".format(data_storage[chat_id].date_out.strftime("%d-%m-%Y"))
         mes += "  город: {}\n".format(city)
         mes += "  количество отелей в выдаче: {}\n".format(pages_cnt)
         if data_storage[chat_id].image_choose:
@@ -439,15 +452,12 @@ class BaseCommandHandlers:
     def is_command_message(self, message):
         if (message.text == LOW_PRICE_COMMAND['command_description'] or
             message.text == ('/' + LOW_PRICE_COMMAND['command_name'])):
-            print('lowprice')
             return True
         if (message.text == HIGH_PRICE_COMMAND['command_description'] or
             message.text == ('/' + HIGH_PRICE_COMMAND['command_name'])):
-            print('highprice')
             return True
         if (message.text == BEST_DEAL_COMMAND['command_description'] or
             message.text == ('/' + BEST_DEAL_COMMAND['command_name'])):
-            print('bestprice')
             return True
         if message.text == ('/' + START_COMMAND['command_name']):
             return True
@@ -488,6 +498,7 @@ class BaseCommandHandlers:
         self.set_data_received_handler()
 
     def set_callbacks(self) -> None:
+        self.set_calendar_callback()
         self.set_town_callback()
         self.set_hotels_page_callback()
         self.set_hotels_show_image_choose_callback()

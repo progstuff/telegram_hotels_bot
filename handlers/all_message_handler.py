@@ -25,13 +25,10 @@ bestdeal_handlers.set_handlers()
 @bot.message_handler(state='*')
 def command_message(message: Message) -> None:
     if message.text == LOW_PRICE_COMMAND['command_description'] or message.text == ('/'+LOW_PRICE_COMMAND['command_name']):
-        print('lowprice')
         lowprice_handlers.command_from_menu(message)
     if message.text == HIGH_PRICE_COMMAND['command_description'] or message.text == ('/'+HIGH_PRICE_COMMAND['command_name']):
-        print('highprice')
         highprice_handlers.command_from_menu(message)
     if message.text == BEST_DEAL_COMMAND['command_description'] or message.text == ('/'+BEST_DEAL_COMMAND['command_name']):
-        print('bestprice')
         bestdeal_handlers.command_from_menu(message)
     if message.text == ('/'+START_COMMAND['command_name']):
         bot_start(message)

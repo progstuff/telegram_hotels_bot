@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 
 def get_towns() -> [{}, {}, ...]:
     towns_data = []
-    with open('geo.csv', 'r') as towns:
+    with open('geo.csv', 'r', encoding='cp1251') as towns:
         towns.readline()
         for line in towns:
             data = line.split(';')
