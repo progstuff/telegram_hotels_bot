@@ -1,20 +1,24 @@
-from loader import bot
 from datetime import date
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from telebot.types import Message
-from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HELP_COMMAND, START_COMMAND, HISTORY_COMMAND
 
-from utils.misc.data_utils import get_complete_town_name, translate_date
+from telebot.types import CallbackQuery, Message, ReplyKeyboardRemove
+from telegram_bot_calendar import LSTEP, DetailedTelegramCalendar
+
+from config_data.config import (BEST_DEAL_COMMAND, HELP_COMMAND,
+                                HIGH_PRICE_COMMAND, HISTORY_COMMAND,
+                                LOW_PRICE_COMMAND, START_COMMAND)
+from database.command_history_data import (CommandDataDb, CommandHotelsDb,
+                                           HotelDb)
+from database.hotels_parser import (get_hotel, get_hotel_data_from_server,
+                                    get_images_links_from_server)
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
 from keyboards.inline.yes_no import get_yes_no_keyboard
-from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
-from database.hotels_parser import get_hotel_data_from_server, get_images_links_from_server, get_hotel
-from telebot.types import CallbackQuery
-from states.user_data_information import UserData, StatesGroup
-from telebot.types import ReplyKeyboardRemove
-from database.command_history_data import CommandDataDb, CommandHotelsDb, HotelDb
 from keyboards.reply.show_menu import get_main_menu_keyboard
+from loader import bot
+from states.user_data_information import StatesGroup, UserData
+from utils.misc.data_utils import get_complete_town_name, translate_date
+from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
+
 
 class BaseCommandHandlers:
     """

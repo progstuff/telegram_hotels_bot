@@ -1,4 +1,6 @@
-from peewee import *
+from peewee import (AutoField, BigIntegerField, BooleanField, CharField,
+                    DateTimeField, FloatField, ForeignKeyField, IntegerField,
+                    Model, SmallIntegerField, SqliteDatabase)
 
 db = SqliteDatabase('bot_data.db')
 

@@ -1,5 +1,7 @@
-from utils.misc.rapid_api_utils  import get_filtered_hotels, get_images_links
 from datetime import date
+
+from utils.misc.rapid_api_utils import get_filtered_hotels, get_images_links
+
 hotels_data = {}
 
 

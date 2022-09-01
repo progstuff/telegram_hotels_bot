@@ -1,8 +1,9 @@
-from loader import bot
-import handlers
 from telebot.custom_filters import StateFilter
-from utils.set_bot_commands import set_default_commands
+
+import handlers
 from database.command_history_data import initiate_tables
+from loader import bot
+from utils.set_bot_commands import set_default_commands
 
 if __name__ == '__main__':
     initiate_tables()

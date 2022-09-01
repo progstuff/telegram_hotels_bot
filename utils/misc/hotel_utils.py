@@ -1,10 +1,12 @@
-from loader import bot
-from keyboards.inline.hotels_chooser import hotels_paginator, get_photo_keyboard
-from database.hotels_parser import get_db_hotel_data, get_hotel_image
-from telebot.types import InputMedia
 from telebot.apihelper import ApiTelegramException
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, InputMedia
 from telegram_bot_pagination import InlineKeyboardPaginator
+
+from database.hotels_parser import get_db_hotel_data, get_hotel_image
+from keyboards.inline.hotels_chooser import (get_photo_keyboard,
+                                             hotels_paginator)
+from loader import bot
+
 
 # одинаковый код для lowprice, highprice
 def hotel_image_slide_photo(call: CallbackQuery, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str) -> None:

@@ -1,8 +1,10 @@
-import requests
 import json
-from config_data.config import RAPID_API_KEY
 from datetime import date
+
+import requests
 from requests import Response
+
+from config_data.config import RAPID_API_KEY
 
 
 def send_data_to_server(url: str, params={}, headers={}) -> Response:

@@ -1,8 +1,11 @@
+import os
+from os.path import dirname, join
+
 import requests
 import telebot
-import os
-from os.path import join, dirname
 from dotenv import load_dotenv
+
+
 class TestQuerries:
     """ класс для тестовых запросов, чтобы разобраться как что работает """
     def __init__(self):

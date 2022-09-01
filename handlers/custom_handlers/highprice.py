@@ -1,5 +1,5 @@
-from states.user_data_information import UserData, StatesGroup
 from handlers.custom_handlers.base_command_class import BaseCommandHandlers
+from states.user_data_information import StatesGroup, UserData
 
 
 class HighpriceCommand(BaseCommandHandlers):

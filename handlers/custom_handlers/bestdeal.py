@@ -1,10 +1,10 @@
-from states.user_data_information import UserData, StatesGroup
+from telebot.types import CallbackQuery, Message
+
 from handlers.custom_handlers.base_command_class import BaseCommandHandlers
-from keyboards.inline.price_choose import get_price_choose_keyboard
 from keyboards.inline.distance_choose import get_distance_choose_keyboard
-from telebot.types import Message
-from telebot.types import CallbackQuery
+from keyboards.inline.price_choose import get_price_choose_keyboard
 from loader import bot
+from states.user_data_information import StatesGroup, UserData
 
 
 class BestDealCommand(BaseCommandHandlers):

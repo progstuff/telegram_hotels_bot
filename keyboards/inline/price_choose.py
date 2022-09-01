@@ -1,4 +1,4 @@
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def get_price_choose_keyboard(key_data: str, price_vals: list) -> InlineKeyboardMarkup:
