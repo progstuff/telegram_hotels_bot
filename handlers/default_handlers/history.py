@@ -1,7 +1,7 @@
 from telebot.types import Message
 
 from loader import bot
-from database.command_history_data import CommandDataDb, HotelDb
+from database.command_history_data import CommandDataDb, CommandHotelsDb, HotelDb
 from keyboards.inline.hotels_chooser import history_hotels_paginator
 from config_data.config import HISTORY_COMMAND
 from telebot.types import CallbackQuery
@@ -11,14 +11,15 @@ history_data = dict()
 
 
 def bot_history(message: Message) -> None:
-    command_rows = CommandDataDb.select()
+    user_id = message.from_user.id
+    command_rows = CommandDataDb.select().where(CommandDataDb.user_id == user_id)
     i = 1
     history_data[message.chat.id] = list()
 
     for row in reversed(command_rows):
-        #user = UserDataDb.get(UserDataDb.id == row.user_id)
+
         com_mes = row.get_str_view() + '\n'
-        hotels = HotelDb.select().where(HotelDb.command_data == row)
+        hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == row)
         for hotel in reversed(hotels):
             mes = '\n'.join([com_mes, hotel.get_str_view()])
             history_data[message.chat.id].append(mes)

@@ -58,7 +58,7 @@ class CommandDataDb(Model):
                              str(self.invoke_time.year)])
 
         data = ' '.join([' '*20, self.command_name, date_str])
-        result = '\n'.join(['='*35, data, '='*35])
+        result = '\n'.join(['='*32, data, '='*32])
         return result
 
     class Meta:
@@ -93,7 +93,7 @@ class HotelDb(Model):
 
 class CommandHotelsDb(Model):
     command_data = ForeignKeyField(CommandDataDb)
-    hotel_id = BigIntegerField(HotelDb)
+    hotel_id = ForeignKeyField(HotelDb)
 
     class Meta:
         database = db
