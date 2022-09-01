@@ -1,6 +1,7 @@
 from peewee import (AutoField, BigIntegerField, BooleanField, CharField,
                     DateTimeField, FloatField, ForeignKeyField, IntegerField,
                     Model, SmallIntegerField, SqliteDatabase)
+from datetime import date
 
 db = SqliteDatabase('bot_data.db')
 
@@ -42,14 +43,14 @@ class CommandDataDb(Model):
     town_ru = CharField()
     town_en = CharField()
 
-    def get_str_view(self) -> str:
-        day = self.invoke_time.day
+    def convert_date_to_str(self, date):
+        day = date.day
         day_str = ''
         if day < 10:
             day_str = '0'
         day_str += str(day)
 
-        month = self.invoke_time.month
+        month = date.month
         month_str = ''
         if month < 10:
             month_str = '0'
@@ -57,10 +58,18 @@ class CommandDataDb(Model):
 
         date_str = '-'.join([day_str,
                              month_str,
-                             str(self.invoke_time.year)])
+                             str(date.year)])
+        return date_str
 
+    def get_str_view(self) -> str:
+        date_str = self.convert_date_to_str(self.invoke_time)
         data = ' '.join([' '*20, self.command_name, date_str])
-        result = '\n'.join(['='*32, data, '='*32])
+        result = '\n'.join(['='*32,
+                            data,
+                            '  город {}'.format(self.town_ru),
+                            '   дата заселения {}'.format(self.convert_date_to_str(self.date_in)),
+                            '   дата выселения {}'.format(self.convert_date_to_str(self.date_out)),
+                            '='*32])
         return result
 
     class Meta:
@@ -73,7 +82,7 @@ class HotelDb(Model):
     name = CharField()
     address = CharField()
     distance_to_center = CharField()
-    one_day_price = CharField()
+    one_day_price = FloatField()
     days_cnt = IntegerField()
     total_price = FloatField()
     url = CharField()
@@ -82,11 +91,18 @@ class HotelDb(Model):
         rez = '\n'.join(["отель: {}".format(self.name),
                          "адрес: {}".format(self.address),
                          "расстояние до центра: {}".format(self.distance_to_center),
-                         "цена за ночь: {}".format(self.one_day_price),
+                         "цена за ночь: {}$".format(int(round(self.one_day_price))),
                          "число ночей: {}".format(self.days_cnt),
                          "суммарная стоимость: {0}$".format(int(round(self.total_price))),
                          "страница отеля: {}".format(self.url)])
         return rez
+
+    def update_total_price(self, date_in, date_out):
+        d1 = date(date_in.year, date_in.month, date_in.day)
+        d2 = date(date_out.year, date_out.month, date_out.day)
+        days = (d2 - d1).days
+        self.days_cnt = days
+        self.total_price = self.one_day_price*days
 
     class Meta:
         database = db

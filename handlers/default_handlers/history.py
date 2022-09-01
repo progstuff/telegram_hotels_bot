@@ -14,7 +14,7 @@ class HistoryCommand:
 
     def __init__(self):
         self.__history_data = dict()
-        self.page_size = 7
+        self.page_size = 5
 
     def load_page(self, chat_id, page: int):
         self.__history_data[chat_id]['cur_page_ind'] = page
@@ -27,8 +27,22 @@ class HistoryCommand:
             end_ind = n
         self.__history_data[chat_id]['cur_page_hotels'] = list()
         for ind in range(start_ind, end_ind):
-            self.__history_data[chat_id]['cur_page_hotels'].insert(0,
+            self.__history_data[chat_id]['cur_page_hotels'].insert(
+                0,
                 self.__history_data[chat_id]['all_hotels'][ind])
+
+    def increase_global_page_ind(self, chat_id):
+        cur_page_ind = self.__history_data[chat_id]['cur_page_ind']
+        max_page_ind = self.__history_data[chat_id]['max_pages']
+        if cur_page_ind < max_page_ind:
+            cur_page_ind += 1
+            self.__history_data[chat_id]['cur_page_ind'] = cur_page_ind
+
+    def decrease_global_page_ind(self, chat_id):
+        cur_page_ind = self.__history_data[chat_id]['cur_page_ind']
+        if cur_page_ind > 1:
+            cur_page_ind -= 1
+            self.__history_data[chat_id]['cur_page_ind'] = cur_page_ind
 
     def show_user_history(self, message: Message) -> None:
         user_id = message.from_user.id
@@ -36,17 +50,17 @@ class HistoryCommand:
         self.__history_data[message.chat.id] = dict()
         self.__history_data[message.chat.id]['all_hotels'] = list()
 
-
         for row in reversed(command_rows):
             com_mes = row.get_str_view() + '\n'
             hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == row)
             for hotel in reversed(hotels):
+                hotel.update_total_price(row.date_in, row.date_out)
                 mes = '\n'.join([com_mes, hotel.get_str_view()])
                 self.__history_data[message.chat.id]['all_hotels'].append(mes)
             self.__history_data[message.chat.id]['max_pages'] = ceil(len(self.__history_data[message.chat.id]['all_hotels'])/self.page_size)
             self.__history_data[message.chat.id]['cur_page_ind'] = self.__history_data[message.chat.id]['max_pages']
 
-        if len(self.__history_data[message.chat.id]) > 0:
+        if len(self.__history_data[message.chat.id]['all_hotels']) > 0:
             self.load_page(message.chat.id, self.__history_data[message.chat.id]['max_pages'])
             hotels_keyboard = history_hotels_paginator(len(self.__history_data[message.chat.id]['cur_page_hotels']),
                                                        len(self.__history_data[message.chat.id]['cur_page_hotels']),
@@ -66,15 +80,13 @@ class HistoryCommand:
         def update_history_hotel_message(call: CallbackQuery) -> None:
             data = call.data.split('#')[1]
             if data == 'forward':
+                self.increase_global_page_ind(call.message.chat.id)
                 global_page_index = self.__history_data[call.message.chat.id]['cur_page_ind']
-
-                global_page_index += 1
                 self.load_page(call.message.chat.id, global_page_index)
                 page_index = len(self.__history_data[call.message.chat.id]['cur_page_hotels'])
             elif data == 'backward':
+                self.decrease_global_page_ind(call.message.chat.id)
                 global_page_index = self.__history_data[call.message.chat.id]['cur_page_ind']
-
-                global_page_index -= 1
                 self.load_page(call.message.chat.id, global_page_index)
                 page_index = len(self.__history_data[call.message.chat.id]['cur_page_hotels'])
             else:
@@ -89,7 +101,6 @@ class HistoryCommand:
                                   text=self.__history_data[call.message.chat.id]['cur_page_hotels'][page_index-1],
                                   reply_markup=hotels_keyboard.markup,
                                   disable_web_page_preview=True)
-
 
 
 history_handlers = HistoryCommand()

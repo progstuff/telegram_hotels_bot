@@ -494,7 +494,7 @@ class BaseCommandHandlers:
                 name=hotel.name,
                 address=hotel.address,
                 distance_to_center=hotel.center_dist,
-                one_day_price=hotel.price,
+                one_day_price=hotel.exact_current,
                 days_cnt=hotel.days_cnt,
                 total_price=hotel.total_cost,
                 url=hotel.hotel_link

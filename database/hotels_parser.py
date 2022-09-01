@@ -48,6 +48,10 @@ class Hotel:
                     self.__exact_current = exact_price
 
     @property
+    def exact_current(self) -> str:
+        return self.__exact_current
+
+    @property
     def hotel_link(self) -> str:
         return self.__hotel_link
 
@@ -91,7 +95,7 @@ class Hotel:
         rez = '\n'.join(["отель: {}".format(self.__name),
                          "адрес: {}".format(self.__address),
                          "расстояние до центра: {}".format(self.__center_dist),
-                         "цена за ночь: {}".format(self.__price),
+                         "цена за ночь: {}$".format(int(round(self.__exact_current))),
                          "число ночей: {}".format(self.__days_cnt),
                          "суммарная стоимость: {0}$".format(int(round(self.__total_cost))),
                          "страница отеля: {}".format(self.__hotel_link)])
