@@ -13,7 +13,7 @@ from database.hotels_parser import get_hotel_data_from_server, get_images_links_
 from telebot.types import CallbackQuery
 from states.user_data_information import UserData, StatesGroup
 from telebot.types import ReplyKeyboardRemove
-from database.command_history_data import CommandDataDb, UserDataDb, HotelDb
+from database.command_history_data import CommandDataDb, CommandHotelsDb, HotelDb
 from keyboards.reply.show_menu import get_main_menu_keyboard
 
 class BaseCommandHandlers:
@@ -475,19 +475,18 @@ class BaseCommandHandlers:
         return False, False
 
     def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage):
-        user = UserDataDb.create(user_id=user_id,
-                                 date_in=data_storage[chat_id].date_in,
-                                 date_out=data_storage[chat_id].date_out,
-                                 town_ru=data_storage[chat_id].city_ru,
-                                 town_en=data_storage[chat_id].city_en)
-        com_data = CommandDataDb.create(user=user,
+        com_data = CommandDataDb.create(user_id=user_id,
                                         command_name=self.__command_config['command_name'],
-                                        invoke_time=date.today())
+                                        invoke_time=date.today(),
+                                        date_in=data_storage[chat_id].date_in,
+                                        date_out=data_storage[chat_id].date_out,
+                                        town_ru=data_storage[chat_id].city_ru,
+                                        town_en=data_storage[chat_id].city_en)
 
         for hotel_ind in range(1, hotels_cnt + 1):
             hotel = get_hotel(chat_id, hotel_ind)
-            HotelDb.create(
-                command_data=com_data,
+            hotel_db = HotelDb.insert(
+                hotel_id=hotel.id,
                 name=hotel.name,
                 address=hotel.address,
                 distance_to_center=hotel.center_dist,
@@ -495,7 +494,10 @@ class BaseCommandHandlers:
                 days_cnt=hotel.days_cnt,
                 total_price=hotel.total_cost,
                 url=hotel.hotel_link
-            )
+            ).on_conflict('replace').execute()
+            r = CommandHotelsDb.create(command_data=com_data,
+                                       hotel_id=hotel_db)
+            a = 1
 
     def set_handlers(self) -> None:
         self.set_get_city_handler()
