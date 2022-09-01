@@ -1,24 +1,12 @@
 from telebot.handler_backends import State, StatesGroup
-
-
-class UserLowPriceState(StatesGroup):
-    city = State()
-    hotels_number = State()
-    image_choose = State()
-    max_images_cnt = State()
-
-
-class UserHighPriceState(StatesGroup):
-    city = State()
-    hotels_number = State()
-    image_choose = State()
-    max_images_cnt = State()
-
-
+from datetime import date, datetime, timedelta
 class UserData:
+
     def __init__(self):
         self.__city_en = ''
         self.__city_ru = ''
+        self.__min_price = None
+        self.__max_price = None
         self.__image_choose = False
         self.__cur_image_index = 1
         self.__max_image_index = 2
@@ -26,7 +14,39 @@ class UserData:
         self.__max_page_index = 5
         self.__photo_message_id = 0
         self.__text_message_id = 0
+        self.__image_choose_keyboard_message_id = 0
+        self.__image_cnt_choose_keyboard_message_id = 0
         self.__town_keyboard_message_id = 0
+        self.__price_keyboard_message_id = 0
+        self.__distance_keyboard_message_id = 0
+        self.__pages_cnt_keyboard_message_id = 0
+
+        cur_date = date.today()
+        start_day = cur_date + timedelta(days=1)
+        end_day = start_day + timedelta(days=1)
+        self.__date_in = start_day
+        self.__date_out = end_day
+
+    def clear_data(self):
+        self.__city_en = ''
+        self.__city_ru = ''
+        self.__min_price = None
+        self.__max_price = None
+        self.__image_choose = False
+        self.__cur_image_index = 1
+        self.__max_image_index = 2
+        self.__cur_page_index = 1
+        self.__max_page_index = 5
+        self.__photo_message_id = 0
+        self.__text_message_id = 0
+        self.__image_choose_keyboard_message_id = 0
+        self.__image_cnt_choose_keyboard_message_id = 0
+        self.__town_keyboard_message_id = 0
+        self.__price_keyboard_message_id = 0
+        self.__distance_keyboard_message_id = 0
+        self.__pages_cnt_keyboard_message_id = 0
+        self.__date_in = ''
+        self.__date_out = ''
 
     @property
     def city_en(self) -> str:
@@ -108,6 +128,109 @@ class UserData:
     @town_keyboard_message_id.setter
     def town_keyboard_message_id(self, new_id: int):
         self.__town_keyboard_message_id = new_id
+
+    @property
+    def price_keyboard_message_id(self) -> int:
+        return self.__price_keyboard_message_id
+
+    @price_keyboard_message_id.setter
+    def price_keyboard_message_id(self, new_id: int):
+        self.__price_keyboard_message_id = new_id
+
+    @property
+    def min_price(self) -> int:
+        return self.__min_price
+
+    @min_price.setter
+    def min_price(self, price: float):
+        self.__min_price = price
+
+    @property
+    def max_price(self) -> int:
+        return self.__max_price
+
+    @max_price.setter
+    def max_price(self, price: float):
+        self.__max_price = price
+
+    @property
+    def distance_keyboard_message_id(self) -> int:
+        return self.__distance_keyboard_message_id
+
+    @distance_keyboard_message_id.setter
+    def distance_keyboard_message_id(self, new_id: int):
+        self.__distance_keyboard_message_id = new_id
+
+    @property
+    def image_choose_keyboard_message_id(self) -> int:
+        return self.__image_choose_keyboard_message_id
+
+    @image_choose_keyboard_message_id.setter
+    def image_choose_keyboard_message_id(self, new_id: int):
+        self.__image_choose_keyboard_message_id = new_id
+
+    @property
+    def image_cnt_choose_keyboard_message_id(self) -> int:
+        return self.__image_cnt_choose_keyboard_message_id
+
+    @image_cnt_choose_keyboard_message_id.setter
+    def image_cnt_choose_keyboard_message_id(self, new_id: int):
+        self.__image_cnt_choose_keyboard_message_id = new_id
+
+    @property
+    def date_in(self) -> date:
+        return self.__date_in
+
+    @date_in.setter
+    def date_in(self, date_obj: date):
+        self.__date_in = date_obj
+
+    @property
+    def date_out(self) -> date:
+        return self.__date_out
+
+    @date_out.setter
+    def date_out(self, date_obj: date):
+        self.__date_out = date_obj
+
+
+class UserLowPriceState(StatesGroup):
+    date_in = State()
+    date_out = State()
+    city = State()
+    hotels_number = State()
+    image_choose = State()
+    max_images_cnt = State()
+    data_received = State()
+
+
+class UserHighPriceState(StatesGroup):
+    date_in = State()
+    date_out = State()
+    city = State()
+    hotels_number = State()
+    image_choose = State()
+    max_images_cnt = State()
+    data_received = State()
+
+
+
+class UserBestDealState(StatesGroup):
+    date_in = State()
+    date_out = State()
+    city = State()
+    hotels_number = State()
+    hotels_price = State()
+    image_choose = State()
+    max_images_cnt = State()
+    distance_to_center = State()
+    undefined_state = State()
+    data_received = State()
+
+
+
+
+
 
 
 

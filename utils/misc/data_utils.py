@@ -27,3 +27,12 @@ def get_dates_for_low_high_prices() -> (str, str):
     start_day_str = start_day.strftime("%Y-%m-%d")
     end_day_str = end_day.strftime("%Y-%m-%d")
     return start_day_str, end_day_str
+
+
+def translate_date(d):
+    if d == 'year':
+        return 'год'
+    if d == 'day':
+        return 'день'
+    if d == 'month':
+        return 'месяц'

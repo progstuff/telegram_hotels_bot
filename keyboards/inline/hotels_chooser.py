@@ -2,7 +2,7 @@ from telegram_bot_pagination import InlineKeyboardPaginator
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_hotels_numbers_choose_keyboard(key_data: list, values: list) -> InlineKeyboardMarkup:
+def get_hotels_numbers_choose_keyboard(key_data: str, values: list) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
     buttons = []
     for val in values:

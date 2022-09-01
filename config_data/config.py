@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 
 def get_towns() -> [{}, {}, ...]:
     towns_data = []
-    with open('geo.csv', 'r') as towns:
+    with open('geo.csv', 'r', encoding='cp1251') as towns:
         towns.readline()
         for line in towns:
             data = line.split(';')
@@ -33,7 +33,7 @@ START_COMMAND = {'command_name': 'start', 'command_description': '🚀 Нача�
 HELP_COMMAND = {'command_name': 'help', 'command_description': '❓ Вывести справку'}
 
 LOW_PRICE_COMMAND = {'command_name': 'lowprice',
-                     'command_description': '🏨 бюджетные',
+                     'command_description': '🏨 бюджетные отели',
                      'command_welcome_mes': 'Вы выбрали показать топ бюджетных отелей в городе',
                      'image_dialog_key': 'lowprice_image_choose',
                      'image_pages_number_key': 'lowprice_image_pages_number',
@@ -43,7 +43,7 @@ LOW_PRICE_COMMAND = {'command_name': 'lowprice',
                      'town_choose_kbrd_key': 'town_lowprice'}
 
 HIGH_PRICE_COMMAND = {'command_name': 'highprice',
-                      'command_description': '🏨 дорогие',
+                      'command_description': '🏨 дорогие отели',
                       'command_welcome_mes': 'Вы выбрали показать топ дорогих отелей в городе',
                       'image_dialog_key': 'highprice_image_choose',
                       'image_pages_number_key': 'highprice_image_pages_number',
@@ -53,8 +53,23 @@ HIGH_PRICE_COMMAND = {'command_name': 'highprice',
                       'town_choose_kbrd_key': 'town_highprice'
                       }
 
-BEST_DEAL_COMMAND = {'command_name': 'bestdeal', 'command_description': '🔎 поиск'}
-HISTORY_COMMAND = {'command_name': 'history', 'command_description': '📜 история'}
+BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
+                     'command_description': '🔎 поиск отелей',
+                     'command_welcome_mes': 'Вы выбрали поиск отелей по параметрам',
+                     'image_dialog_key': 'bestdeal_image_choose',
+                     'image_pages_number_key': 'bestdeal_image_pages_number',
+                     'hotels_pages_number_key': 'bestdeal_hotel_pages_number',
+                     'hotels_kbrd_page_key': 'bestdeal_page',
+                     'image_kbrd_page_key': 'bestdeal_image',
+                     'town_choose_kbrd_key': 'town_bestdeal',
+                     'hotels_price_key': 'hotels_price_bestdeal',
+                     'distance_key': 'distance_bestdeal'
+                     }
+
+HISTORY_COMMAND = {'command_name': 'history',
+                   'command_description': '📜 история',
+                   'command_welcome_mes': 'в разработке'}
+
 HELP_MESSAGE = '''
 Что может этот бот?
 
@@ -63,6 +78,7 @@ HELP_MESSAGE = '''
  🔎 найти отель по параметрам
  📜 показать историю запросов
 '''
+
 DEFAULT_COMMANDS = [START_COMMAND, HELP_COMMAND]
 CUSTOM_COMMANDS = [LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND]
 
