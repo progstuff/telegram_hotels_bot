@@ -10,19 +10,19 @@ from handlers.default_handlers.help import bot_help
 from handlers.default_handlers.history import history_handlers
 from handlers.default_handlers.start import bot_start
 from loader import bot
-from states.user_data_information import (UserBestDealState, UserData,
+from states.user_data_information import (UserBestDealState,
                                           UserHighPriceState,
                                           UserLowPriceState)
 
-highprice_handlers = HighpriceCommand(HIGH_PRICE_COMMAND, UserHighPriceState, UserData())
+highprice_handlers = HighpriceCommand(HIGH_PRICE_COMMAND, UserHighPriceState)
 highprice_handlers.set_handlers()
 highprice_handlers.set_callbacks()
 
-lowprice_handlers = LowpriceCommand(LOW_PRICE_COMMAND, UserLowPriceState, UserData())
+lowprice_handlers = LowpriceCommand(LOW_PRICE_COMMAND, UserLowPriceState)
 lowprice_handlers.set_handlers()
 lowprice_handlers.set_callbacks()
 
-bestdeal_handlers = BestDealCommand(BEST_DEAL_COMMAND, UserBestDealState, UserData())
+bestdeal_handlers = BestDealCommand(BEST_DEAL_COMMAND, UserBestDealState)
 bestdeal_handlers.set_callbacks()
 bestdeal_handlers.set_handlers()
 

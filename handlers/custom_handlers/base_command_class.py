@@ -8,14 +8,13 @@ from config_data.config import (BEST_DEAL_COMMAND, HELP_COMMAND,
                                 LOW_PRICE_COMMAND, START_COMMAND)
 from database.command_history_data import (CommandDataDb, CommandHotelsDb,
                                            HotelDb)
-from database.hotels_parser import (get_hotel, get_hotel_data_from_server,
-                                    get_images_links_from_server)
+from database.command_local_data import CommandUserData
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
 from keyboards.inline.yes_no import get_yes_no_keyboard
 from keyboards.reply.show_menu import get_main_menu_keyboard
 from loader import bot
-from states.user_data_information import StatesGroup, UserData
+from states.user_data_information import StatesGroup
 from utils.misc.data_utils import get_complete_town_name, translate_date
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
 
@@ -27,11 +26,10 @@ class BaseCommandHandlers:
     например команда highprice от lowprice отличается только параметром по которому фильтруются
     отели при отправлении запроса на сервер, поэтому для реализации этой команды можно наследовать класс без изменений
     """
-    def __init__(self, command_config: str, user_state_class: StatesGroup, user_state_data: UserData):
+    def __init__(self, command_config: str, user_state_class: StatesGroup):
         self.__command_data = dict()
         self.__command_config = command_config
         self.__state_class = user_state_class
-        self.__user_state_data = user_state_data
         self.__filter_value = 'PRICE'
         self.__cur_step = 1
         self.__max_steps_cnt = 5
@@ -91,7 +89,7 @@ class BaseCommandHandlers:
         bot.send_message(message.chat.id, self.__command_config['command_welcome_mes'], reply_markup=ReplyKeyboardRemove())
 
         bot.set_state(message.from_user.id, self.__state_class.date_in, message.chat.id)
-        self.__command_data[message.chat.id] = self.__user_state_data
+        self.__command_data[message.chat.id] = CommandUserData()
         self.choose_date(message.from_user.id, message.chat.id)
 
     def start_city_dialog(self, user_id: int, chat_id: int):
@@ -421,15 +419,15 @@ class BaseCommandHandlers:
         mes = bot.send_message(chat_id=chat_id, text=text)
 
         town = data_storage[chat_id].city_en
+        local_hotels_storage = data_storage[chat_id].hotels_data
         #####################
-        hotels_cnt = get_hotel_data_from_server(chat_id,
-                                                town,
-                                                data_storage[chat_id].date_in,
-                                                data_storage[chat_id].date_out,
-                                                data_storage[chat_id].max_page_index,
-                                                self.__filter_value,
-                                                data_storage[chat_id].min_price,
-                                                data_storage[chat_id].max_price)
+        hotels_cnt = local_hotels_storage.get_hotel_data_from_server(town,
+                                                                     data_storage[chat_id].date_in,
+                                                                     data_storage[chat_id].date_out,
+                                                                     data_storage[chat_id].max_page_index,
+                                                                     self.__filter_value,
+                                                                     data_storage[chat_id].min_price,
+                                                                     data_storage[chat_id].max_price)
         #####################
         if hotels_cnt > 0:
             if hotels_cnt < data_storage[chat_id].max_page_index:
@@ -441,7 +439,8 @@ class BaseCommandHandlers:
             if image_choose:
                 max_images_cnt = data_storage[chat_id].max_image_index
                 for hotel_ind in range(1, hotels_cnt + 1):
-                    images_cnt = get_images_links_from_server(get_hotel(chat_id, hotel_ind), max_images_cnt)
+                    images_cnt = local_hotels_storage.get_images_links_from_server(hotel_ind,
+                                                                                   max_images_cnt)
                     text = text + "\nполучено изображений для отеля №{0}: {1}".format(hotel_ind, images_cnt)
                     bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
 
@@ -487,8 +486,9 @@ class BaseCommandHandlers:
                                         town_ru=data_storage[chat_id].city_ru,
                                         town_en=data_storage[chat_id].city_en)
 
+        local_hotels_storage = data_storage[chat_id].hotels_data
         for hotel_ind in range(1, hotels_cnt + 1):
-            hotel = get_hotel(chat_id, hotel_ind)
+            hotel = local_hotels_storage.get_hotel(hotel_ind)
             hotel_db = HotelDb.insert(
                 hotel_id=hotel.id,
                 name=hotel.name,
@@ -499,9 +499,8 @@ class BaseCommandHandlers:
                 total_price=hotel.total_cost,
                 url=hotel.hotel_link
             ).on_conflict('replace').execute()
-            r = CommandHotelsDb.create(command_data=com_data,
-                                       hotel_id=hotel_db)
-            a = 1
+            CommandHotelsDb.create(command_data=com_data,
+                                   hotel_id=hotel_db)
 
     def set_handlers(self) -> None:
         self.set_get_city_handler()
@@ -509,7 +508,6 @@ class BaseCommandHandlers:
         self.set_image_choose_handler()
         self.set_image_cnt_choose_handler()
         self.set_data_received_handler()
-        #self.set_data_received_handler()
 
     def set_callbacks(self) -> None:
         self.set_calendar_callback()

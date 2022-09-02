@@ -5,6 +5,7 @@ import requests
 from requests import Response
 
 from config_data.config import RAPID_API_KEY
+from loguru import logger
 
 
 def send_data_to_server(url: str, params={}, headers={}) -> Response:
@@ -13,13 +14,13 @@ def send_data_to_server(url: str, params={}, headers={}) -> Response:
             response = requests.get(url, headers=headers, params=params, timeout=10)
             if response.status_code == requests.codes.ok:
                 return response
-            print('Ошибка', response.status_code)
+            logger.error("Ошибка {}".format(response.status_code))
             return None
         except requests.ConnectionError:
-            print('Ошибка соединения')
+            logger.error('Ошибка соединения')
             return None
         except requests.exceptions.ReadTimeout:
-            print('слишком долгий ответ от сервера')
+            logger.error('слишком долгий ответ от сервера')
 
 
 def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
@@ -60,12 +61,6 @@ def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
             return False, None
         return True, links
     return False, None
-
-
-def load_image(url: str) -> None:
-    response = send_data_to_server(url)
-    with open('./Image.jpg', 'wb') as f:
-        f.write(response.content)
 
 
 def hotel_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
@@ -122,7 +117,6 @@ def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> l
 
 
 def get_filtered_hotels(town: str, start_date: date, end_date: date, max_pages_cnt: int, filter_value: str, min_price: int, max_price: int) -> (bool, list):
-    #start_date, end_date = get_dates_for_low_high_prices()
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
     return get_hotels(town, max_pages_cnt, start_date_str, end_date_str, filter_value, min_price, max_price)

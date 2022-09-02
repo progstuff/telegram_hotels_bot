@@ -2,8 +2,6 @@ from datetime import date
 
 from utils.misc.rapid_api_utils import get_filtered_hotels, get_images_links
 
-hotels_data = {}
-
 
 class Hotel:
     def __init__(self, hotel_data: dict, date_in: date, date_out: date):
@@ -100,57 +98,3 @@ class Hotel:
                          "суммарная стоимость: {0}$".format(int(round(self.__total_cost))),
                          "страница отеля: {}".format(self.__hotel_link)])
         return rez
-
-
-def get_images_links_from_server(hotel: dict, max_images_cnt: int) -> int:
-    hotel_id = hotel.id
-    is_success, links = get_images_links(hotel_id, max_images_cnt)
-    if is_success:
-        hotel.links = links
-        return len(links)
-    return 0
-
-
-def get_hotel_data_from_server(chat_id: int, town: str, start_date: date, end_date: date, max_pages_cnt: int, filter_value: str, min_price=None, max_price=None) -> int:
-    is_success, hotels = get_filtered_hotels(town, start_date, end_date, max_pages_cnt, filter_value, min_price, max_price)
-    if is_success:
-        hotels_data[chat_id] = []
-        for hotel in hotels:
-            hotels_data[chat_id].append(Hotel(hotel, start_date, end_date))
-        return len(hotels)
-    print('отели не получены')
-    return 0
-
-
-def get_hotel_id(chat_id: int, ind: int) -> int:
-    data = hotels_data.get(chat_id, None)
-    if data is not None:
-        if ind <= len(data):
-            return data[ind-1].id
-    return None
-
-
-def get_hotel(chat_id: int, ind: int) -> Hotel:
-    data = hotels_data.get(chat_id, None)
-    if data is not None:
-        if ind <= len(data):
-            return data[ind-1]
-    return None
-
-
-def get_hotel_image(chat_id: int, hotel_ind: int, image_ind: int) -> str:
-    data = hotels_data.get(chat_id, None)
-    if data is not None:
-        if hotel_ind <= len(data):
-            links = data[hotel_ind - 1].links
-            if len(links) >= image_ind:
-                return links[image_ind - 1]
-    return None
-
-
-def get_db_hotel_data(chat_id: int, ind: int) -> str:
-    data = hotels_data.get(chat_id, None)
-    if data is not None:
-        if ind <= len(data):
-            return data[ind].get_str_view()
-    return ''

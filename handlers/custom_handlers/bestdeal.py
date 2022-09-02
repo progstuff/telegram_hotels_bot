@@ -4,13 +4,13 @@ from handlers.custom_handlers.base_command_class import BaseCommandHandlers
 from keyboards.inline.distance_choose import get_distance_choose_keyboard
 from keyboards.inline.price_choose import get_price_choose_keyboard
 from loader import bot
-from states.user_data_information import StatesGroup, UserData
+from states.user_data_information import StatesGroup
 
 
 class BestDealCommand(BaseCommandHandlers):
 
-    def __init__(self, command_config: str, user_state_class: StatesGroup, user_state_data: UserData):
-        super().__init__(command_config, user_state_class, user_state_data)
+    def __init__(self, command_config: str, user_state_class: StatesGroup):
+        super().__init__(command_config, user_state_class)
         self.set_filter_value('PRICE')
         self.set_max_steps_cnt(7)
         self.__price_vals = [200, 500, 1000]
