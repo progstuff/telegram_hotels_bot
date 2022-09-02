@@ -6,8 +6,8 @@ from telegram_bot_calendar import LSTEP, DetailedTelegramCalendar
 from config_data.config import (BEST_DEAL_COMMAND, HELP_COMMAND,
                                 HIGH_PRICE_COMMAND, HISTORY_COMMAND,
                                 LOW_PRICE_COMMAND, START_COMMAND)
-from database.command_history_data import (CommandDataDb, CommandHotelsDb,
-                                           HotelDb)
+from database.db_class_data import (CommandDataDb, CommandHotelsDb,
+                                    HotelDb)
 from database.command_local_data import CommandUserData
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
@@ -309,8 +309,10 @@ class BaseCommandHandlers:
                 bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
 
                 self.__command_data[call.message.chat.id].reset_global_page_ind()
-                self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
-
+                self.load_data_from_server(call.from_user.id,
+                                           call.message.chat.id,
+                                           self.__command_data,
+                                           True)
                 main_menu_keyboard = get_main_menu_keyboard()
                 bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
 
@@ -332,8 +334,7 @@ class BaseCommandHandlers:
 
             bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
             self.__command_data[call.message.chat.id].reset_global_page_ind()
-            self.load_data(call.from_user.id, call.message.chat.id,  self.__command_data)
-
+            self.load_data_from_server(call.from_user.id, call.message.chat.id,  self.__command_data, True)
             main_menu_keyboard = get_main_menu_keyboard()
             bot.send_message(call.message.chat.id, "Какие отели ещё показать?", reply_markup=main_menu_keyboard)
 
@@ -346,13 +347,15 @@ class BaseCommandHandlers:
             if data == "backward":
                 self.__command_data[call.message.chat.id].decrease_global_page_ind()
                 page_ind = self.__command_data[call.message.chat.id].max_page_index
-                self.__command_data[call.message.chat.id].get_data_from_db()
+                self.load_data_from_db(call.message.chat.id, self.__command_data)
             elif data == "forward_web":
                 self.__command_data[call.message.chat.id].increase_global_page_ind()
-                self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
+                self.load_data_from_server(call.from_user.id, call.message.chat.id, self.__command_data, False)
                 page_ind = 1
             elif data == "forward":
+                self.__command_data[call.message.chat.id].increase_global_page_ind()
                 page_ind = 1
+                self.load_data_from_db(call.message.chat.id, self.__command_data)
             else:
                 page_ind = int(data)
 
@@ -448,18 +451,19 @@ class BaseCommandHandlers:
         except ApiTelegramException:
             logger.warning('чат {}: не удалось найти/удалить сообщение с описанием отеля'.format(chat_id))
 
-
-
-    def load_data(self, user_id: int, chat_id: int, data_storage: dict) -> None:
-        self.try_to_delete_hotel_page_message(chat_id, data_storage)
-        text = self.get_info_message(data_storage, chat_id)
-        mes = bot.send_message(chat_id=chat_id, text=text)
-        data_storage[chat_id].info_message_id = mes.message_id
-
-        town = data_storage[chat_id].city_en
+    def load_data_from_db(self, chat_id: int, data_storage: dict) -> None:
+        #self.show_info_message(chat_id, data_storage)
         local_hotels_storage = data_storage[chat_id].hotels_data
-        #####################
-        hotels_cnt = local_hotels_storage.get_hotel_data_from_server(town,
+        hotels_cnt = local_hotels_storage.get_hotel_data_from_db(command_id=data_storage[chat_id].command_db_id,
+                                                                 page_ind=data_storage[chat_id].cur_global_page_ind,
+                                                                 page_size=data_storage[chat_id].max_page_index)
+        self.show_data(hotels_cnt, chat_id, data_storage, False)
+
+    def load_data_from_server(self, user_id: int, chat_id: int, data_storage: dict, is_first: bool) -> None:
+        self.show_info_message(chat_id, data_storage)
+        local_hotels_storage = data_storage[chat_id].hotels_data
+
+        hotels_cnt = local_hotels_storage.get_hotel_data_from_server(data_storage[chat_id].city_en,
                                                                      data_storage[chat_id].date_in,
                                                                      data_storage[chat_id].date_out,
                                                                      data_storage[chat_id].max_page_index,
@@ -467,12 +471,33 @@ class BaseCommandHandlers:
                                                                      self.__filter_value,
                                                                      data_storage[chat_id].min_price,
                                                                      data_storage[chat_id].max_price)
+        if hotels_cnt > 0:
+            if is_first:
+                data_storage[chat_id].command_db_id = self.add_command_data_to_db(user_id, chat_id, data_storage)
+            else:
+                self.append_hotels_data_to_db(chat_id, data_storage)
+
+        self.show_data(hotels_cnt, chat_id, data_storage, True)
+
+    def show_info_message(self, chat_id: int, data_storage: dict):
+        self.try_to_delete_hotel_page_message(chat_id, data_storage)
+        text = self.get_info_message(data_storage, chat_id)
+        mes = bot.send_message(chat_id=chat_id, text=text)
+        data_storage[chat_id].info_message_id = mes.message_id
+
+    def show_data(self, hotels_cnt: int, chat_id: int, data_storage: dict, is_need_recreate: bool) -> None:
+        local_hotels_storage = data_storage[chat_id].hotels_data
         #####################
+        text = self.get_info_message(data_storage, chat_id)
         if hotels_cnt > 0:
             if hotels_cnt < data_storage[chat_id].max_page_index:
                 data_storage[chat_id].max_page_index = hotels_cnt
             text = text + "\nДоступно отелей для просмотра: {}".format(hotels_cnt)
-            bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
+
+            try:
+                bot.edit_message_text(chat_id=chat_id, text=text, message_id=data_storage[chat_id].info_message_id)
+            except ApiTelegramException:
+                logger.warning("чат - {}: повтор описания параметров запроса (без фото)".format(chat_id))
 
             image_choose = data_storage[chat_id].image_choose
             if image_choose:
@@ -481,21 +506,24 @@ class BaseCommandHandlers:
                     images_cnt = local_hotels_storage.get_images_links_from_server(hotel_ind,
                                                                                    max_images_cnt)
                     text = text + "\nполучено изображений для отеля №{0}: {1}".format(hotel_ind, images_cnt)
-                    bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
+
+                    try:
+                        bot.edit_message_text(chat_id=chat_id, text=text, message_id=data_storage[chat_id].info_message_id)
+                    except ApiTelegramException:
+                        logger.warning("чат - {}: повтор описания параметров запроса (с фото)".format(chat_id))
 
             page_ind = 1
             image_ind = 1
             change_hotel_page(chat_id,
                               page_ind,
                               image_ind,
-                              True,
+                              is_need_recreate,
                               data_storage,
                               self.__command_config['hotels_kbrd_page_key'],
                               self.__command_config['image_kbrd_page_key'])
-            data_storage[chat_id].command_db_id = self.add_command_data_to_db(user_id, chat_id, hotels_cnt, data_storage)
         else:
             text = text + '\nНет отелей для просмотра'
-            bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
+            bot.edit_message_text(chat_id=chat_id, text=text, message_id=data_storage[chat_id].info_message_id)
 
     def is_command_message(self, message):
         if (message.text == LOW_PRICE_COMMAND['command_description'] or
@@ -516,7 +544,7 @@ class BaseCommandHandlers:
             return True, False
         return False, False
 
-    def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage) -> int:
+    def add_command_data_to_db(self, user_id, chat_id, data_storage) -> int:
         com_data = CommandDataDb.create(user_id=user_id,
                                         command_name=self.__command_config['command_name'],
                                         invoke_time=date.today(),
@@ -526,6 +554,7 @@ class BaseCommandHandlers:
                                         town_en=data_storage[chat_id].city_en)
 
         local_hotels_storage = data_storage[chat_id].hotels_data
+        hotels_cnt = local_hotels_storage.get_hotels_cnt()
         for hotel_ind in range(1, hotels_cnt + 1):
             hotel = local_hotels_storage.get_hotel(hotel_ind)
             hotel_db = HotelDb.insert(
@@ -541,6 +570,25 @@ class BaseCommandHandlers:
             CommandHotelsDb.create(command_data=com_data,
                                    hotel_id=hotel_db)
         return com_data.id
+
+    def append_hotels_data_to_db(self, chat_id, data_storage) -> int:
+        com_id = data_storage[chat_id].command_db_id
+        local_hotels_storage = data_storage[chat_id].hotels_data
+        hotels_cnt = local_hotels_storage.get_hotels_cnt()
+        for hotel_ind in range(1, hotels_cnt + 1):
+            hotel = local_hotels_storage.get_hotel(hotel_ind)
+            hotel_db = HotelDb.insert(
+                hotel_id=hotel.id,
+                name=hotel.name,
+                address=hotel.address,
+                distance_to_center=hotel.center_dist,
+                one_day_price=hotel.exact_current,
+                days_cnt=hotel.days_cnt,
+                total_price=hotel.total_cost,
+                url=hotel.hotel_link
+            ).on_conflict('replace').execute()
+            CommandHotelsDb.create(command_data=com_id,
+                                   hotel_id=hotel_db)
 
     def set_handlers(self) -> None:
         self.set_get_city_handler()

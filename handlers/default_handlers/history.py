@@ -3,8 +3,8 @@ from math import ceil
 from telebot.types import CallbackQuery, Message
 from telebot.apihelper import ApiTelegramException
 from config_data.config import HISTORY_COMMAND
-from database.command_history_data import (CommandDataDb, CommandHotelsDb,
-                                           HotelDb)
+from database.db_class_data import (CommandDataDb, CommandHotelsDb,
+                                    HotelDb)
 from keyboards.inline.hotels_chooser import history_hotels_paginator
 from loader import bot
 from loguru import logger

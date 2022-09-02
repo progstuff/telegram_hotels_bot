@@ -1,12 +1,15 @@
 from datetime import date, timedelta
 from utils.misc.hotels_parser import Hotel
 from utils.misc.rapid_api_utils import get_filtered_hotels
-from database.command_history_data import CommandDataDb, HotelDb, CommandHotelsDb
+from database.db_class_data import CommandDataDb, HotelDb, CommandHotelsDb, convert_datetime_field_to_date
 
 class LocalHotelsStorage:
 
     def __init__(self):
         self.__hotels_data = []
+
+    def get_hotels_cnt(self):
+        return len(self.__hotels_data)
 
     def get_images_links_from_server(self, hotel_ind, max_images_cnt: int) -> int:
         hotel = self.get_hotel(hotel_ind)
@@ -17,6 +20,18 @@ class LocalHotelsStorage:
             return len(links)
         return 0
 
+    def get_hotel_data_from_db(self, command_id, page_ind, page_size) -> int:
+        com_data = CommandDataDb.get(CommandDataDb.id == command_id)
+        hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == com_data)
+        self.__hotels_data = []
+        start_ind = (page_ind - 1)*page_size
+        end_ind = start_ind + page_size-1
+        start_date = convert_datetime_field_to_date(com_data.date_in)
+        end_date = convert_datetime_field_to_date(com_data.date_out)
+        for ind in range(start_ind, end_ind + 1):
+            self.__hotels_data.append(Hotel.get_hotel_by_db_object(hotels[ind], start_date, end_date))
+        return len(self.__hotels_data)
+
     def get_hotel_data_from_server(self, town: str, start_date: date, end_date: date, max_pages_cnt: int,
                                    cur_global_page_ind: int, filter_value: str, min_price=None, max_price=None) -> int:
         is_success, hotels = get_filtered_hotels(town, start_date, end_date, max_pages_cnt, cur_global_page_ind,
@@ -24,7 +39,7 @@ class LocalHotelsStorage:
         if is_success:
             self.__hotels_data = []
             for hotel in hotels:
-                self.__hotels_data.append(Hotel(hotel, start_date, end_date))
+                self.__hotels_data.append(Hotel.get_hotel_by_dict_object(hotel, start_date, end_date))
             return len(hotels)
         print('отели не получены')
         return 0
@@ -115,18 +130,14 @@ class CommandUserData:
         self.__date_in = ''
         self.__date_out = ''
 
-    def get_data_from_db(self):
-        com_data = CommandDataDb.select().where(CommandDataDb.id == self.__command_db_id)
-        hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == com_data)
-        for ind, hotel in enumerate(hotels):
-            print(hotel.get_str_view())
-
     def increase_global_page_ind(self):
         cur_ind = self.__cur_global_page_ind
         max_ind = self.__max_global_page_ind
         if cur_ind == max_ind:
             self.__cur_global_page_ind += 1
             self.__max_global_page_ind += 1
+        else:
+            self.__cur_global_page_ind += 1
 
     def decrease_global_page_ind(self):
         cur_ind = self.__cur_global_page_ind

@@ -118,6 +118,10 @@ class CommandHotelsDb(Model):
         db_table = 'comand_hotels'
 
 
+def convert_datetime_field_to_date(date_time_field: DateTimeField):
+    return date(date_time_field.year, date_time_field.month, date_time_field.day)
+
+
 def initiate_tables():
     HotelDb.create_table()
     CommandHotelsDb.create_table()

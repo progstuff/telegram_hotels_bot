@@ -1,7 +1,7 @@
 from telebot.custom_filters import StateFilter
 
 import handlers
-from database.command_history_data import initiate_tables
+from database.db_class_data import initiate_tables
 from loader import bot
 from utils.set_bot_commands import set_default_commands
 from loguru import logger

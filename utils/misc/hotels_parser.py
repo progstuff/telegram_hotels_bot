@@ -1,10 +1,10 @@
 from datetime import date
 
-from utils.misc.rapid_api_utils import get_filtered_hotels, get_images_links
+from database.db_class_data import HotelDb
 
 
 class Hotel:
-    def __init__(self, hotel_data: dict, date_in: date, date_out: date):
+    def __init__(self):
         self.__id = 0
         self.__name = ''
         self.__address = ''
@@ -16,12 +16,39 @@ class Hotel:
         self.__total_cost = 0
         self.__exact_current = 0
         self.__days_cnt = 0
-        self.set_hotel_data(hotel_data)
-        self.calculate_total_cost((date_out - date_in).days)
+        #self.set_hotel_data(hotel_data)
+        #self.calculate_total_cost((date_out - date_in).days)
+
+    @classmethod
+    def get_hotel_by_dict_object(cls, hotel_data: dict, date_in: date, date_out: date):
+        h = Hotel()
+        h.set_hotel_data(hotel_data)
+        h.calculate_total_cost((date_out - date_in).days)
+        return h
+
+    @classmethod
+    def get_hotel_by_db_object(cls, hotel_db_object: HotelDb, date_in: date, date_out: date):
+        h = Hotel()
+        h.set_hotel_data_from_db_object(hotel_db_object)
+        h.calculate_total_cost((date_out - date_in).days)
+        return h
 
     def calculate_total_cost(self, days_number: int):
         self.__days_cnt = days_number
         self.__total_cost = self.__exact_current * days_number
+
+    def set_hotel_data_from_db_object(self, hotel_db_object: HotelDb):
+        self.__id = hotel_db_object.hotel_id
+        self.__name = hotel_db_object.name
+        self.__address = hotel_db_object.address
+        self.__center_dist = hotel_db_object.distance_to_center
+        self.__price = ''
+        self.__price_total = ''
+        self.__links = []
+        self.__hotel_link = hotel_db_object.url
+        self.__total_cost = hotel_db_object.total_price
+        self.__exact_current = hotel_db_object.one_day_price
+        self.__days_cnt = 0
 
     def set_hotel_data(self, hotel: dict) -> None:
         self.__id = hotel.get('id', None)
