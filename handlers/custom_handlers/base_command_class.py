@@ -17,7 +17,8 @@ from loader import bot
 from states.user_data_information import StatesGroup
 from utils.misc.data_utils import get_complete_town_name, translate_date
 from utils.misc.hotel_utils import change_hotel_page, hotel_image_slide_photo
-
+from telebot.apihelper import ApiTelegramException
+from loguru import logger
 
 class BaseCommandHandlers:
     """
@@ -345,6 +346,7 @@ class BaseCommandHandlers:
             if data == "backward":
                 self.__command_data[call.message.chat.id].decrease_global_page_ind()
                 page_ind = self.__command_data[call.message.chat.id].max_page_index
+                self.__command_data[call.message.chat.id].get_data_from_db()
             elif data == "forward_web":
                 self.__command_data[call.message.chat.id].increase_global_page_ind()
                 self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
@@ -428,9 +430,31 @@ class BaseCommandHandlers:
                                reply_markup=keyboard)
         self.__command_data[chat_id].__pages_cnt_keyboard_message_id = mes.id
 
+    def try_to_delete_hotel_page_message(self, chat_id: int, data_storage: dict):
+        try:
+            bot.delete_message(chat_id=chat_id,
+                               message_id=data_storage[chat_id].info_message_id)
+        except ApiTelegramException:
+            logger.warning('чат {}: не удалось найти/удалить информационное сообщение'.format(chat_id))
+        try:
+            bot.delete_message(chat_id=chat_id,
+                               message_id=data_storage[chat_id].photo_message_id)
+        except ApiTelegramException:
+            logger.warning('чат {}: не удалось найти/удалить сообщение с фото отеля'.format(chat_id))
+
+        try:
+            bot.delete_message(chat_id=chat_id,
+                               message_id=data_storage[chat_id].text_message_id)
+        except ApiTelegramException:
+            logger.warning('чат {}: не удалось найти/удалить сообщение с описанием отеля'.format(chat_id))
+
+
+
     def load_data(self, user_id: int, chat_id: int, data_storage: dict) -> None:
+        self.try_to_delete_hotel_page_message(chat_id, data_storage)
         text = self.get_info_message(data_storage, chat_id)
         mes = bot.send_message(chat_id=chat_id, text=text)
+        data_storage[chat_id].info_message_id = mes.message_id
 
         town = data_storage[chat_id].city_en
         local_hotels_storage = data_storage[chat_id].hotels_data
@@ -468,7 +492,7 @@ class BaseCommandHandlers:
                               data_storage,
                               self.__command_config['hotels_kbrd_page_key'],
                               self.__command_config['image_kbrd_page_key'])
-            self.add_command_data_to_db(user_id, chat_id, hotels_cnt, data_storage)
+            data_storage[chat_id].command_db_id = self.add_command_data_to_db(user_id, chat_id, hotels_cnt, data_storage)
         else:
             text = text + '\nНет отелей для просмотра'
             bot.edit_message_text(chat_id=chat_id, text=text, message_id=mes.message_id)
@@ -492,7 +516,7 @@ class BaseCommandHandlers:
             return True, False
         return False, False
 
-    def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage):
+    def add_command_data_to_db(self, user_id, chat_id, hotels_cnt, data_storage) -> int:
         com_data = CommandDataDb.create(user_id=user_id,
                                         command_name=self.__command_config['command_name'],
                                         invoke_time=date.today(),
@@ -516,6 +540,7 @@ class BaseCommandHandlers:
             ).on_conflict('replace').execute()
             CommandHotelsDb.create(command_data=com_data,
                                    hotel_id=hotel_db)
+        return com_data.id
 
     def set_handlers(self) -> None:
         self.set_get_city_handler()

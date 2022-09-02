@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from utils.misc.hotels_parser import Hotel
 from utils.misc.rapid_api_utils import get_filtered_hotels
-
+from database.command_history_data import CommandDataDb, HotelDb, CommandHotelsDb
 
 class LocalHotelsStorage:
 
@@ -81,9 +81,11 @@ class CommandUserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
+        self.__info_message_id = 0
         self.__hotels_data = LocalHotelsStorage()
         self.__cur_global_page_ind = 1
         self.__max_global_page_ind = 1
+        self.__command_db_id = 0
 
         cur_date = date.today()
         start_day = cur_date + timedelta(days=1)
@@ -109,8 +111,15 @@ class CommandUserData:
         self.__price_keyboard_message_id = 0
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
+        self.__info_message_id = 0
         self.__date_in = ''
         self.__date_out = ''
+
+    def get_data_from_db(self):
+        com_data = CommandDataDb.select().where(CommandDataDb.id == self.__command_db_id)
+        hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == com_data)
+        for ind, hotel in enumerate(hotels):
+            print(hotel.get_str_view())
 
     def increase_global_page_ind(self):
         cur_ind = self.__cur_global_page_ind
@@ -284,3 +293,20 @@ class CommandUserData:
     @property
     def max_global_page_ind(self) -> int:
         return self.__max_global_page_ind
+
+    @property
+    def info_message_id(self) -> int:
+        return self.__info_message_id
+
+    @info_message_id.setter
+    def info_message_id(self, new_id: int):
+        self.__info_message_id = new_id
+
+    @property
+    def command_db_id(self):
+        return self.__command_db_id
+
+    @command_db_id.setter
+    def command_db_id(self, new_id):
+        self.__command_db_id = new_id
+
