@@ -1,14 +1,13 @@
-import math
 from math import ceil
 
 from telebot.types import CallbackQuery, Message
-
+from telebot.apihelper import ApiTelegramException
 from config_data.config import HISTORY_COMMAND
 from database.command_history_data import (CommandDataDb, CommandHotelsDb,
                                            HotelDb)
 from keyboards.inline.hotels_chooser import history_hotels_paginator
 from loader import bot
-
+from loguru import logger
 
 class HistoryCommand:
 
@@ -16,7 +15,7 @@ class HistoryCommand:
         self.__history_data = dict()
         self.page_size = 5
 
-    def load_page(self, chat_id, page: int):
+    def load_page(self, chat_id: int, page: int) -> None:
         self.__history_data[chat_id]['cur_page_ind'] = page
         cur_page = self.__history_data[chat_id]['max_pages'] - page + 1
 
@@ -31,14 +30,14 @@ class HistoryCommand:
                 0,
                 self.__history_data[chat_id]['all_hotels'][ind])
 
-    def increase_global_page_ind(self, chat_id):
+    def increase_global_page_ind(self, chat_id: int) -> None:
         cur_page_ind = self.__history_data[chat_id]['cur_page_ind']
         max_page_ind = self.__history_data[chat_id]['max_pages']
         if cur_page_ind < max_page_ind:
             cur_page_ind += 1
             self.__history_data[chat_id]['cur_page_ind'] = cur_page_ind
 
-    def decrease_global_page_ind(self, chat_id):
+    def decrease_global_page_ind(self, chat_id: int) -> None:
         cur_page_ind = self.__history_data[chat_id]['cur_page_ind']
         if cur_page_ind > 1:
             cur_page_ind -= 1
@@ -91,16 +90,20 @@ class HistoryCommand:
                 page_index = len(self.__history_data[call.message.chat.id]['cur_page_hotels'])
             else:
                 page_index = int(data)
-            hotels_keyboard = history_hotels_paginator(page_index,
-                                                       len(self.__history_data[call.message.chat.id]['cur_page_hotels']),
-                                                       self.__history_data[call.message.chat.id]['cur_page_ind'],
-                                                       self.__history_data[call.message.chat.id]['max_pages'],
-                                                       HISTORY_COMMAND['hotels_pages_number_key'])
-            bot.edit_message_text(chat_id=call.message.chat.id,
-                                  message_id=call.message.id,
-                                  text=self.__history_data[call.message.chat.id]['cur_page_hotels'][page_index-1],
-                                  reply_markup=hotels_keyboard.markup,
-                                  disable_web_page_preview=True)
+
+            try:
+                hotels_keyboard = history_hotels_paginator(page_index,
+                                                           len(self.__history_data[call.message.chat.id]['cur_page_hotels']),
+                                                           self.__history_data[call.message.chat.id]['cur_page_ind'],
+                                                           self.__history_data[call.message.chat.id]['max_pages'],
+                                                           HISTORY_COMMAND['hotels_pages_number_key'])
+                bot.edit_message_text(chat_id=call.message.chat.id,
+                                      message_id=call.message.id,
+                                      text=self.__history_data[call.message.chat.id]['cur_page_hotels'][page_index-1],
+                                      reply_markup=hotels_keyboard.markup,
+                                      disable_web_page_preview=True)
+            except ApiTelegramException:
+                logger.warning("чат - {}: переключение отеля в истории - текст без изменений".format(call.message.chat.id))
 
 
 history_handlers = HistoryCommand()

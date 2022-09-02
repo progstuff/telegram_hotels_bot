@@ -2,7 +2,6 @@ from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery, InputMedia
 from telegram_bot_pagination import InlineKeyboardPaginator
 
-from database.command_local_data import LocalHotelsStorage
 from keyboards.inline.hotels_chooser import (get_photo_keyboard,
                                              hotels_paginator)
 from loader import bot
@@ -28,7 +27,9 @@ def hotel_image_slide_photo(call: CallbackQuery, data_storage: dict, hotel_kbrd_
 def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str):
     data_storage[chat_id].cur_page_index = page
     pages_cnt = data_storage[chat_id].max_page_index
-    paginator = hotels_paginator(page, pages_cnt, hotel_kbrd_key)
+    cur_global_page_ind = data_storage[chat_id].cur_global_page_ind
+    max_global_page_ind = data_storage[chat_id].max_global_page_ind
+    paginator = hotels_paginator(page, pages_cnt, cur_global_page_ind, max_global_page_ind, hotel_kbrd_key)
     is_need_images = data_storage[chat_id].image_choose
     photo_keyboard = None
     if is_need_images:

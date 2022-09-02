@@ -11,12 +11,22 @@ def get_hotels_numbers_choose_keyboard(key_data: str, values: list) -> InlineKey
     return keyboard
 
 
-def hotels_paginator(page: int, pages_cnt: int, data_prefix: str) -> InlineKeyboardPaginator:
+def hotels_paginator(page: int, pages_cnt: int, cur_global_page: int, max_global_pages: int, data_prefix: str) -> InlineKeyboardPaginator:
     paginator = InlineKeyboardPaginator(
         pages_cnt,
         current_page=page,
         data_pattern=data_prefix + '#{page}'
     )
+    if cur_global_page == max_global_pages:
+        paginator.add_after(InlineKeyboardButton('Предыдущие', callback_data=data_prefix + '#backward'),
+                            InlineKeyboardButton('{0}/{1}'.format(cur_global_page, max_global_pages),
+                                                 callback_data=data_prefix + '#backward'),
+                            InlineKeyboardButton('Загрузить ещё', callback_data=data_prefix + '#forward_web'))
+    else:
+        paginator.add_after(InlineKeyboardButton('Предыдущие', callback_data=data_prefix + '#backward'),
+                            InlineKeyboardButton('{0}/{1}'.format(cur_global_page, max_global_pages),
+                                                 callback_data=data_prefix + '#backward'),
+                            InlineKeyboardButton('Следующие', callback_data=data_prefix + '#forward'))
     return paginator
 
 

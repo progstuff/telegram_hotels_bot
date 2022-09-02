@@ -18,9 +18,9 @@ class LocalHotelsStorage:
         return 0
 
     def get_hotel_data_from_server(self, town: str, start_date: date, end_date: date, max_pages_cnt: int,
-                                   filter_value: str, min_price=None, max_price=None) -> int:
-        is_success, hotels = get_filtered_hotels(town, start_date, end_date, max_pages_cnt, filter_value, min_price,
-                                                 max_price)
+                                   cur_global_page_ind: int, filter_value: str, min_price=None, max_price=None) -> int:
+        is_success, hotels = get_filtered_hotels(town, start_date, end_date, max_pages_cnt, cur_global_page_ind,
+                                                 filter_value, min_price, max_price)
         if is_success:
             self.__hotels_data = []
             for hotel in hotels:
@@ -82,6 +82,8 @@ class CommandUserData:
         self.__distance_keyboard_message_id = 0
         self.__pages_cnt_keyboard_message_id = 0
         self.__hotels_data = LocalHotelsStorage()
+        self.__cur_global_page_ind = 1
+        self.__max_global_page_ind = 1
 
         cur_date = date.today()
         start_day = cur_date + timedelta(days=1)
@@ -109,6 +111,22 @@ class CommandUserData:
         self.__pages_cnt_keyboard_message_id = 0
         self.__date_in = ''
         self.__date_out = ''
+
+    def increase_global_page_ind(self):
+        cur_ind = self.__cur_global_page_ind
+        max_ind = self.__max_global_page_ind
+        if cur_ind == max_ind:
+            self.__cur_global_page_ind += 1
+            self.__max_global_page_ind += 1
+
+    def decrease_global_page_ind(self):
+        cur_ind = self.__cur_global_page_ind
+        if cur_ind > 1:
+            self.__cur_global_page_ind -= 1
+
+    def reset_global_page_ind(self):
+        self.__cur_global_page_ind = 1
+        self.__max_global_page_ind = 1
 
     @property
     def city_en(self) -> str:
@@ -258,3 +276,11 @@ class CommandUserData:
     @property
     def hotels_data(self) -> LocalHotelsStorage:
         return self.__hotels_data
+
+    @property
+    def cur_global_page_ind(self) -> int:
+        return self.__cur_global_page_ind
+
+    @property
+    def max_global_page_ind(self) -> int:
+        return self.__max_global_page_ind

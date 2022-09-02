@@ -116,34 +116,38 @@ def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> l
     return rez
 
 
-def get_filtered_hotels(town: str, start_date: date, end_date: date, max_pages_cnt: int, filter_value: str, min_price: int, max_price: int) -> (bool, list):
+def get_filtered_hotels(town: str, start_date: date, end_date: date, max_pages_cnt: int, cur_global_page_ind: int,
+                        filter_value: str, min_price: int, max_price: int) -> (bool, list):
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
-    return get_hotels(town, max_pages_cnt, start_date_str, end_date_str, filter_value, min_price, max_price)
+    return get_hotels(town, max_pages_cnt, start_date_str, end_date_str, cur_global_page_ind, filter_value, min_price, max_price)
 
 
-def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str, min_price: int, max_price: int) -> (bool, list):
+def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, cur_global_page_ind: int, sort_rule: str,
+               min_price: int, max_price: int) -> (bool, list):
     is_finded, locations = get_locations_from_server(town)
 
     if is_finded:
         if len(locations) == 0:
             return False, None
         town_id = locations[0][0]
-        is_finded, hotels = get_hotels_from_server(town_id, max_pages_cnt, date_in, date_out, sort_rule, min_price, max_price)
+        is_finded, hotels = get_hotels_from_server(town_id, max_pages_cnt, date_in, date_out, cur_global_page_ind,
+                                                   sort_rule, min_price, max_price)
 
         return is_finded, hotels
 
     return False, None
 
 
-def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str, min_price: int, max_price: int) -> (bool, list):
+def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, cur_global_page_ind: int,
+                           sort_rule: str, min_price: int, max_price: int) -> (bool, list):
     """
     получает отели в выбранной локации
     """
     url = 'https://hotels4.p.rapidapi.com/properties/list'
     params = {
         'destinationId': town_id,
-        'pageNumber': '1',
+        'pageNumber': str(cur_global_page_ind),
         'pageSize': str(max_pages_cnt),
         'checkIn': date_in,
         'checkOut': date_out,

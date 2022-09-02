@@ -33,7 +33,7 @@ class BaseCommandHandlers:
         self.__filter_value = 'PRICE'
         self.__cur_step = 1
         self.__max_steps_cnt = 5
-        self.__hotels_pages = [1, 5, 10, 15]
+        self.__hotels_pages = [1, 3, 5]
         self.__images_cnt = [1, 2, 3]
         self.calendar_id = "zero"
 
@@ -306,6 +306,8 @@ class BaseCommandHandlers:
                                  text='Шаг {0} из {1}: Вы выбрали не показывать фото отелей'
                                  .format(self.cur_step, self.max_steps_cnt))
                 bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
+
+                self.__command_data[call.message.chat.id].reset_global_page_ind()
                 self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
 
                 main_menu_keyboard = get_main_menu_keyboard()
@@ -328,6 +330,7 @@ class BaseCommandHandlers:
             self.increase_step()  # был шаг 3
 
             bot.set_state(call.from_user.id, CUR_STATE.data_received, call.message.chat.id)
+            self.__command_data[call.message.chat.id].reset_global_page_ind()
             self.load_data(call.from_user.id, call.message.chat.id,  self.__command_data)
 
             main_menu_keyboard = get_main_menu_keyboard()
@@ -338,15 +341,26 @@ class BaseCommandHandlers:
 
         @bot.callback_query_handler(func=lambda call: call.data.split('#')[0] == CUR_COMMAND['hotels_kbrd_page_key'])
         def hotel_page_callback(call: CallbackQuery) -> None:
-            page_ind = int(call.data.split('#')[1])
-            if not (page_ind == self.__command_data[call.message.chat.id].cur_page_index):
-                image_ind = 1
-                change_hotel_page(call.message.chat.id,
-                                  page_ind, image_ind,
-                                  False,
-                                  self.__command_data,
-                                  CUR_COMMAND['hotels_kbrd_page_key'],
-                                  CUR_COMMAND['image_kbrd_page_key'])
+            data = call.data.split('#')[1]
+            if data == "backward":
+                self.__command_data[call.message.chat.id].decrease_global_page_ind()
+                page_ind = self.__command_data[call.message.chat.id].max_page_index
+            elif data == "forward_web":
+                self.__command_data[call.message.chat.id].increase_global_page_ind()
+                self.load_data(call.from_user.id, call.message.chat.id, self.__command_data)
+                page_ind = 1
+            elif data == "forward":
+                page_ind = 1
+            else:
+                page_ind = int(data)
+
+            image_ind = 1
+            change_hotel_page(call.message.chat.id,
+                              page_ind, image_ind,
+                              False,
+                              self.__command_data,
+                              CUR_COMMAND['hotels_kbrd_page_key'],
+                              CUR_COMMAND['image_kbrd_page_key'])
 
     def set_hotel_image_callback(self) -> None:
         CUR_COMMAND = self.__command_config
@@ -425,6 +439,7 @@ class BaseCommandHandlers:
                                                                      data_storage[chat_id].date_in,
                                                                      data_storage[chat_id].date_out,
                                                                      data_storage[chat_id].max_page_index,
+                                                                     data_storage[chat_id].cur_global_page_ind,
                                                                      self.__filter_value,
                                                                      data_storage[chat_id].min_price,
                                                                      data_storage[chat_id].max_price)
