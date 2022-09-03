@@ -33,14 +33,14 @@ RAPID_API_KEY = "rapid api key"
 BOT_TOKEN = "telegram bot token"
 ```
 ## Использование
-<br Для взаимодействия с ботом используются команды: /lowprice, /highprice, /bestdeal, /history, /start
-Команды можно вводить вручную или выбрать в меню, будет запущен соответствующий диалог />
-![alt text](screenshots/menu.png "меню с командами")
-<br Также при выборе команды /start предлагается запуск одного из диалогов />
-![alt text](screenshots/menu2.png "меню с кнопками")
-<br После ввода всех необходимых данных начинается загрузка отелей />
-![alt text](screenshots/hotels.PNG "отели")
-<br При выборе команды /history будет загружена история с ранее просмотренными отелями />
-![alt text](screenshots/history.PNG "история")
+Для взаимодействия с ботом используются команды: /lowprice, /highprice, /bestdeal, /history, /start.  
+Команды можно вводить вручную или выбрать в меню, после этого будет запущен соответствующий диалог  
+![alt text](screenshots/menu.png "меню с командами")  
+Также при выборе команды /start предлагается запуск одного из диалогов  
+![alt text](screenshots/menu2.png "меню с кнопками")  
+После ввода всех необходимых данных начинается загрузка отелей  
+![alt text](screenshots/hotels.PNG "отели")  
+При выборе команды /history будет загружена история с ранее просмотренными отелями  
+![alt text](screenshots/history.PNG "история")  
 
 
