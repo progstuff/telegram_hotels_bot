@@ -35,7 +35,7 @@ def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool,
     if is_need_images:
         data_storage[chat_id].cur_image_index = image_index
         cur_image_index = data_storage[chat_id].cur_image_index
-        max_image_index = data_storage[chat_id].max_image_index
+        max_image_index = data_storage[chat_id].hotels_data.get_links_cnt(page)
         photo_keyboard = get_photo_keyboard(cur_image_index, max_image_index, image_kbrd_key)
 
     local_hotels_data = data_storage[chat_id].hotels_data
@@ -82,7 +82,7 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
             if photo_keyboard is not None:
                 bot.edit_message_media(
                     media=InputMedia(type='photo',
-                                     media=local_hotels_data.get_hotel_image(chat_id, page_index, image_index)),
+                                     media=local_hotels_data.get_hotel_image(page_index, image_index)),
                     chat_id=chat_id,
                     reply_markup=photo_keyboard,
                     message_id=data_storage[chat_id].photo_message_id
@@ -90,7 +90,7 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
             else:
                 bot.edit_message_media(
                     media=InputMedia(type='photo',
-                                     media=local_hotels_data.get_hotel_image(chat_id, page_index, image_index)),
+                                     media=local_hotels_data.get_hotel_image(page_index, image_index)),
                     chat_id=chat_id,
                     message_id=data_storage[chat_id].photo_message_id
                 )

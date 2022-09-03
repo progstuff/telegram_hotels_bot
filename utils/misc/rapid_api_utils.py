@@ -20,10 +20,10 @@ def send_data_to_server(url: str, params={}, headers={}) -> Response:
             logger.error('Ошибка соединения')
             return None
         except requests.exceptions.ReadTimeout:
-            logger.error('слишком долгий ответ от сервера')
+            logger.error('слишком долгий ответ от сервера. Повтор запроса')
 
 
-def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
+def get_images_links_from_server(hotel_id: int, max_images_cnt: int) -> (bool, list):
     url = 'https://hotels4.p.rapidapi.com/properties/get-hotel-photos'
     params = {
         'id': str(hotel_id)
@@ -57,6 +57,7 @@ def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
             links += links1
         if links2 is not None:
             links += links2
+        links = list(dict.fromkeys(links))
         if len(links) == 0:
             return False, None
         return True, links

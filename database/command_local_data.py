@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from utils.misc.hotels_parser import Hotel
-from utils.misc.rapid_api_utils import get_filtered_hotels
-from database.db_class_data import CommandDataDb, HotelDb, CommandHotelsDb, convert_datetime_field_to_date
+from utils.misc.rapid_api_utils import get_filtered_hotels, get_images_links_from_server
+from database.db_class_data import CommandDataDb, HotelDb, CommandHotelsDb, HotelImageLinkDb, convert_datetime_field_to_date
 
 class LocalHotelsStorage:
 
@@ -11,16 +11,28 @@ class LocalHotelsStorage:
     def get_hotels_cnt(self):
         return len(self.__hotels_data)
 
-    def get_images_links_from_server(self, hotel_ind, max_images_cnt: int) -> int:
+    def get_links_cnt(self, ind):
+        h = self.get_hotel(ind)
+        if h is not None:
+            return len(h.links)
+        else:
+            return 0
+
+    def get_images_links(self, hotel_ind, max_images_cnt: int) -> int:
         hotel = self.get_hotel(hotel_ind)
         hotel_id = hotel.id
-        is_success, links = self.get_images_links(hotel_id, max_images_cnt)
-        if is_success:
-            hotel.links = links
+        if len(hotel.links) == 0:
+            is_success, links = get_images_links_from_server(hotel_id, max_images_cnt)
+            if is_success:
+                hotel.links = links
+                hotel.append_links_to_hotel_in_db()
+                return len(links)
+            return 0
+        else:# уже получены ранее из бд
+            links = hotel.links
             return len(links)
-        return 0
 
-    def get_hotel_data_from_db(self, command_id, page_ind, page_size) -> int:
+    def get_hotel_data_from_db(self, command_id: int, page_ind: int, page_size: int, is_need_image=False, max_images_cnt=1) -> int:
         com_data = CommandDataDb.get(CommandDataDb.id == command_id)
         hotels = HotelDb.select().join(CommandHotelsDb).where(CommandHotelsDb.command_data == com_data)
         self.__hotels_data = []
@@ -30,6 +42,9 @@ class LocalHotelsStorage:
         end_date = convert_datetime_field_to_date(com_data.date_out)
         for ind in range(start_ind, end_ind + 1):
             self.__hotels_data.append(Hotel.get_hotel_by_db_object(hotels[ind], start_date, end_date))
+            if is_need_image:
+                self.__hotels_data[-1].get_images_links_from_db(max_images_cnt)
+
         return len(self.__hotels_data)
 
     def get_hotel_data_from_server(self, town: str, start_date: date, end_date: date, max_pages_cnt: int,

@@ -1,6 +1,6 @@
 from datetime import date
 
-from database.db_class_data import HotelDb
+from database.db_class_data import HotelDb, HotelImageLinkDb
 
 
 class Hotel:
@@ -71,6 +71,24 @@ class Hotel:
                 exact_price = price.get('exactCurrent', None)
                 if exact_price is not None:
                     self.__exact_current = exact_price
+
+    def append_links_to_hotel_in_db(self):
+        for link in self.__links:
+            HotelImageLinkDb.insert(
+                url=link,
+                hotel_id=self.id
+            ).on_conflict('replace').execute()
+
+    def get_images_links_from_db(self, max_images_cnt: int):
+        links_db = HotelImageLinkDb.select().where(HotelImageLinkDb.hotel_id == self.id)
+        cur_images_cnt = 0
+        self.links = []
+        for link in links_db:
+            if cur_images_cnt < max_images_cnt:
+                self.links.append(link.url)
+                cur_images_cnt += 1
+            else:
+                break
 
     @property
     def exact_current(self) -> str:

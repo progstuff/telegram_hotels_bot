@@ -109,6 +109,15 @@ class HotelDb(Model):
         db_table = 'hotel'
 
 
+class HotelImageLinkDb(Model):
+    url = CharField(primary_key=True)
+    hotel_id = ForeignKeyField(HotelDb)
+
+    class Meta:
+        database = db
+        db_table = 'hotel_images_url'
+
+
 class CommandHotelsDb(Model):
     command_data = ForeignKeyField(CommandDataDb)
     hotel_id = ForeignKeyField(HotelDb)
@@ -124,5 +133,6 @@ def convert_datetime_field_to_date(date_time_field: DateTimeField):
 
 def initiate_tables():
     HotelDb.create_table()
+    HotelImageLinkDb.create_table()
     CommandHotelsDb.create_table()
     CommandDataDb.create_table()

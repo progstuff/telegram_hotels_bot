@@ -7,7 +7,7 @@ from config_data.config import (BEST_DEAL_COMMAND, HELP_COMMAND,
                                 HIGH_PRICE_COMMAND, HISTORY_COMMAND,
                                 LOW_PRICE_COMMAND, START_COMMAND)
 from database.db_class_data import (CommandDataDb, CommandHotelsDb,
-                                    HotelDb)
+                                    HotelDb, HotelImageLinkDb)
 from database.command_local_data import CommandUserData
 from keyboards.inline.hotels_chooser import get_hotels_numbers_choose_keyboard
 from keyboards.inline.town_chooser import get_town_choose_keyboard
@@ -456,7 +456,9 @@ class BaseCommandHandlers:
         local_hotels_storage = data_storage[chat_id].hotels_data
         hotels_cnt = local_hotels_storage.get_hotel_data_from_db(command_id=data_storage[chat_id].command_db_id,
                                                                  page_ind=data_storage[chat_id].cur_global_page_ind,
-                                                                 page_size=data_storage[chat_id].max_page_index)
+                                                                 page_size=data_storage[chat_id].max_page_index,
+                                                                 is_need_image=data_storage[chat_id].image_choose,
+                                                                 max_images_cnt=data_storage[chat_id].max_image_index)
         self.show_data(hotels_cnt, chat_id, data_storage, False)
 
     def load_data_from_server(self, user_id: int, chat_id: int, data_storage: dict, is_first: bool) -> None:
@@ -503,8 +505,8 @@ class BaseCommandHandlers:
             if image_choose:
                 max_images_cnt = data_storage[chat_id].max_image_index
                 for hotel_ind in range(1, hotels_cnt + 1):
-                    images_cnt = local_hotels_storage.get_images_links_from_server(hotel_ind,
-                                                                                   max_images_cnt)
+
+                    images_cnt = local_hotels_storage.get_images_links(hotel_ind, max_images_cnt)
                     text = text + "\nполучено изображений для отеля №{0}: {1}".format(hotel_ind, images_cnt)
 
                     try:
