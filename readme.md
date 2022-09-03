@@ -35,12 +35,12 @@ BOT_TOKEN = "telegram bot token"
 ## Использование
 Для взаимодействия с ботом используются команды: /lowprice, /highprice, /bestdeal, /history, /start
 Команды можно вводить вручную или выбрать в меню, будет запущен соответствующий диалог
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu.png)
+![alt text](screenshots/menu.png "меню с командами")
 Также при выборе команды /start предлагается запуск одного из диалогов
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu2.png)
+![alt text](screenshots/menu2.png "меню с кнопками")
 После ввода всех необходимых данных начинается загрузка отелей
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/hotels.png)
+![alt text](screenshots/hotels.png "отели")
 При выборе команды /history будет загружена история с ранее просмотренными отелями
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/history.png)
+![alt text](screenshots/history.png "история")
 
 
