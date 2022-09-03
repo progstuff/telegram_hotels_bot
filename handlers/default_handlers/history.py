@@ -44,6 +44,8 @@ class HistoryCommand:
             self.__history_data[chat_id]['cur_page_ind'] = cur_page_ind
 
     def show_user_history(self, message: Message) -> None:
+        bot.send_message(chat_id=message.chat.id,
+                         text=HISTORY_COMMAND["command_welcome_mes"])
         user_id = message.from_user.id
         command_rows = CommandDataDb.select().where(CommandDataDb.user_id == user_id)
         self.__history_data[message.chat.id] = dict()
