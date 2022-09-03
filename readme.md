@@ -35,12 +35,12 @@ BOT_TOKEN = "telegram bot token"
 ## Использование
 Для взаимодействия с ботом используются команды: /lowprice, /highprice, /bestdeal, /history, /start
 Команды можно вводить вручную или выбрать в меню, будет запущен соответствующий диалог
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu.png?raw=true)
+![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu.png)
 Также при выборе команды /start предлагается запуск одного из диалогов
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu2.png?raw=true)
+![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/menu2.png)
 После ввода всех необходимых данных начинается загрузка отелей
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/hotels.png?raw=true)
+![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/hotels.png)
 При выборе команды /history будет загружена история с ранее просмотренными отелями
-![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/history.png?raw=true)
+![alt text](https://gitlab.skillbox.ru/andrei_morozov_3/python_basic_diploma/-/tree/history-func/screenshots/history.png)
 
 
