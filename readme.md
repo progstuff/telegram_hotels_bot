@@ -39,8 +39,8 @@ BOT_TOKEN = "telegram bot token"
 Также при выборе команды /start предлагается запуск одного из диалогов
 ![alt text](screenshots/menu2.png "меню с кнопками")
 После ввода всех необходимых данных начинается загрузка отелей
-![alt text](screenshots/hotels.png "отели")
+![alt text](screenshots/hotels.PNG "отели")
 При выборе команды /history будет загружена история с ранее просмотренными отелями
-![alt text](screenshots/history.png "история")
+![alt text](screenshots/history.PNG "история")
 
 
