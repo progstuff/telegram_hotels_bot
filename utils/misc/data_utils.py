@@ -1,4 +1,5 @@
 import datetime
+
 from config_data.config import TOWNS
 
 

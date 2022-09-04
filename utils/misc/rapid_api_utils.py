@@ -1,8 +1,11 @@
-import requests
 import json
-from config_data.config import RAPID_API_KEY
 from datetime import date
+
+import requests
 from requests import Response
+
+from config_data.config import RAPID_API_KEY
+from loguru import logger
 
 
 def send_data_to_server(url: str, params={}, headers={}) -> Response:
@@ -11,16 +14,16 @@ def send_data_to_server(url: str, params={}, headers={}) -> Response:
             response = requests.get(url, headers=headers, params=params, timeout=10)
             if response.status_code == requests.codes.ok:
                 return response
-            print('Ошибка', response.status_code)
+            logger.error("Ошибка {}".format(response.status_code))
             return None
         except requests.ConnectionError:
-            print('Ошибка соединения')
+            logger.error('Ошибка соединения')
             return None
         except requests.exceptions.ReadTimeout:
-            print('слишком долгий ответ от сервера')
+            logger.error('слишком долгий ответ от сервера. Повтор запроса')
 
 
-def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
+def get_images_links_from_server(hotel_id: int, max_images_cnt: int) -> (bool, list):
     url = 'https://hotels4.p.rapidapi.com/properties/get-hotel-photos'
     params = {
         'id': str(hotel_id)
@@ -54,16 +57,11 @@ def get_images_links(hotel_id: int, max_images_cnt: int) -> (bool, list):
             links += links1
         if links2 is not None:
             links += links2
+        links = list(dict.fromkeys(links))
         if len(links) == 0:
             return False, None
         return True, links
     return False, None
-
-
-def load_image(url: str) -> None:
-    response = send_data_to_server(url)
-    with open('./Image.jpg', 'wb') as f:
-        f.write(response.content)
 
 
 def hotel_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> list:
@@ -119,35 +117,38 @@ def room_images_by_size(data: list, min_size: int, max_size: int, cnt: int) -> l
     return rez
 
 
-def get_filtered_hotels(town: str, start_date: date, end_date: date, max_pages_cnt: int, filter_value: str, min_price: int, max_price: int) -> (bool, list):
-    #start_date, end_date = get_dates_for_low_high_prices()
+def get_filtered_hotels(town: str, start_date: date, end_date: date, max_pages_cnt: int, cur_global_page_ind: int,
+                        filter_value: str, min_price: int, max_price: int) -> (bool, list):
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
-    return get_hotels(town, max_pages_cnt, start_date_str, end_date_str, filter_value, min_price, max_price)
+    return get_hotels(town, max_pages_cnt, start_date_str, end_date_str, cur_global_page_ind, filter_value, min_price, max_price)
 
 
-def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str, min_price: int, max_price: int) -> (bool, list):
+def get_hotels(town: str, max_pages_cnt: int, date_in: str, date_out: str, cur_global_page_ind: int, sort_rule: str,
+               min_price: int, max_price: int) -> (bool, list):
     is_finded, locations = get_locations_from_server(town)
 
     if is_finded:
         if len(locations) == 0:
             return False, None
         town_id = locations[0][0]
-        is_finded, hotels = get_hotels_from_server(town_id, max_pages_cnt, date_in, date_out, sort_rule, min_price, max_price)
+        is_finded, hotels = get_hotels_from_server(town_id, max_pages_cnt, date_in, date_out, cur_global_page_ind,
+                                                   sort_rule, min_price, max_price)
 
         return is_finded, hotels
 
     return False, None
 
 
-def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, sort_rule: str, min_price: int, max_price: int) -> (bool, list):
+def get_hotels_from_server(town_id: str, max_pages_cnt: int, date_in: str, date_out: str, cur_global_page_ind: int,
+                           sort_rule: str, min_price: int, max_price: int) -> (bool, list):
     """
     получает отели в выбранной локации
     """
     url = 'https://hotels4.p.rapidapi.com/properties/list'
     params = {
         'destinationId': town_id,
-        'pageNumber': '1',
+        'pageNumber': str(cur_global_page_ind),
         'pageSize': str(max_pages_cnt),
         'checkIn': date_in,
         'checkOut': date_out,

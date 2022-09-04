@@ -1,10 +1,12 @@
-from loader import bot
-from keyboards.inline.hotels_chooser import hotels_paginator, get_photo_keyboard
-from db.hotels_parser import get_db_hotel_data, get_hotel_image
-from telebot.types import InputMedia
 from telebot.apihelper import ApiTelegramException
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, InputMedia
 from telegram_bot_pagination import InlineKeyboardPaginator
+
+from keyboards.inline.hotels_chooser import (get_photo_keyboard,
+                                             hotels_paginator)
+from loader import bot
+from loguru import logger
+
 
 # одинаковый код для lowprice, highprice
 def hotel_image_slide_photo(call: CallbackQuery, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str) -> None:
@@ -25,19 +27,19 @@ def hotel_image_slide_photo(call: CallbackQuery, data_storage: dict, hotel_kbrd_
 def change_hotel_page(chat_id: int, page: int, image_index: int, is_first: bool, data_storage: dict, hotel_kbrd_key: str, image_kbrd_key: str):
     data_storage[chat_id].cur_page_index = page
     pages_cnt = data_storage[chat_id].max_page_index
-    paginator = hotels_paginator(page, pages_cnt, hotel_kbrd_key)
+    cur_global_page_ind = data_storage[chat_id].cur_global_page_ind
+    max_global_page_ind = data_storage[chat_id].max_global_page_ind
+    paginator = hotels_paginator(page, pages_cnt, cur_global_page_ind, max_global_page_ind, hotel_kbrd_key)
     is_need_images = data_storage[chat_id].image_choose
     photo_keyboard = None
     if is_need_images:
         data_storage[chat_id].cur_image_index = image_index
         cur_image_index = data_storage[chat_id].cur_image_index
-        max_image_index = data_storage[chat_id].max_image_index
+        max_image_index = data_storage[chat_id].hotels_data.get_links_cnt(page)
         photo_keyboard = get_photo_keyboard(cur_image_index, max_image_index, image_kbrd_key)
 
-    d1 = data_storage[chat_id].date_in
-    d2 = data_storage[chat_id].date_out
-    days_cnt = (d2 - d1).days
-    hotel_data = get_db_hotel_data(chat_id, page - 1, days_cnt)
+    local_hotels_data = data_storage[chat_id].hotels_data
+    hotel_data = local_hotels_data.get_db_hotel_data(page - 1)
     if is_first:
         send_hotel_message(chat_id, hotel_data, paginator, photo_keyboard, is_need_images, data_storage)
     else:
@@ -48,16 +50,17 @@ def send_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboard
     if is_need_images:
         image_index = data_storage[chat_id].cur_image_index
         page_index = data_storage[chat_id].cur_page_index
+        local_hotels_data = data_storage[chat_id].hotels_data
         if photo_keyboard is not None:
             sended_message = bot.send_photo(
                 chat_id=chat_id,
-                photo=get_hotel_image(chat_id, page_index, image_index),
+                photo=local_hotels_data.get_hotel_image(page_index, image_index),
                 reply_markup=photo_keyboard
             )
         else:
             sended_message = bot.send_photo(
                 chat_id=chat_id,
-                photo=get_hotel_image(chat_id, page_index, image_index)
+                photo=local_hotels_data.get_hotel_image(page_index, image_index)
             )
         data_storage[sended_message.chat.id].photo_message_id = sended_message.id
     sended_message = bot.send_message(
@@ -75,10 +78,11 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
         try:
             image_index = data_storage[chat_id].cur_image_index
             page_index = data_storage[chat_id].cur_page_index
+            local_hotels_data = data_storage[chat_id].hotels_data
             if photo_keyboard is not None:
                 bot.edit_message_media(
                     media=InputMedia(type='photo',
-                                     media=get_hotel_image(chat_id, page_index, image_index)),
+                                     media=local_hotels_data.get_hotel_image(page_index, image_index)),
                     chat_id=chat_id,
                     reply_markup=photo_keyboard,
                     message_id=data_storage[chat_id].photo_message_id
@@ -86,13 +90,13 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
             else:
                 bot.edit_message_media(
                     media=InputMedia(type='photo',
-                                     media=get_hotel_image(chat_id, page_index, image_index)),
+                                     media=local_hotels_data.get_hotel_image(page_index, image_index)),
                     chat_id=chat_id,
                     message_id=data_storage[chat_id].photo_message_id
                 )
 
         except ApiTelegramException:
-            print('фото без изменений')
+            logger.warning('чат - {0}: переключение фото отеля - фото без изменений'.format(chat_id))
     try:
         bot.edit_message_text(
             chat_id=chat_id,
@@ -103,4 +107,4 @@ def update_hotel_message(chat_id: int, hotel_data: dict, paginator: InlineKeyboa
             parse_mode='Markdown'
         )
     except ApiTelegramException:
-        print('текст без изменений')
+        logger.warning('чат - {0}: переключение описания отеля - текст без изменений'.format(chat_id))

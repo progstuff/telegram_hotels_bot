@@ -1,2 +1,1 @@
-from . import contact_information
-from . import user_data_information
+from . import contact_information, user_data_information
