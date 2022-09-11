@@ -1,5 +1,8 @@
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
-from config_data.config import LOW_PRICE_COMMAND, HIGH_PRICE_COMMAND, BEST_DEAL_COMMAND, HISTORY_COMMAND, HELP_COMMAND
+
+from config_data.config import (BEST_DEAL_COMMAND, HELP_COMMAND,
+                                HIGH_PRICE_COMMAND, HISTORY_COMMAND,
+                                LOW_PRICE_COMMAND)
 
 
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:

@@ -1,5 +1,6 @@
 import os
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 
 
 def get_towns() -> [{}, {}, ...]:
@@ -68,7 +69,8 @@ BEST_DEAL_COMMAND = {'command_name': 'bestdeal',
 
 HISTORY_COMMAND = {'command_name': 'history',
                    'command_description': '📜 история',
-                   'command_welcome_mes': 'в разработке'}
+                   'command_welcome_mes': 'Вы выбрали показать историю',
+                   'hotels_pages_number_key': 'history_hotel_pages_number'}
 
 HELP_MESSAGE = '''
 Что может этот бот?
